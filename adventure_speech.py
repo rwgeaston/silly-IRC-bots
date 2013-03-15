@@ -4,7 +4,7 @@ last_zorks = ['', '']
 def what_to_say(source, text):
     global last_zorks
     global log
-    if text.find("adventurer") and text.find("?"):
+    if text.find("adventurer") >= 0 and text.find("?") >= 0:
         return ["I want to play zork!"]
     elif text.find("zork:") == 0:
         player_command = text[5:]
