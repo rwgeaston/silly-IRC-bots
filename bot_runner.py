@@ -4,7 +4,7 @@ from threading import Thread
 from planes import PlanesBot
 from lowestoddsbot import LowestOddsBot
 
-channel = '#test'
+channel = '#mario'
 server = 'irc.rd.tandberg.com'
 owner = 'littlerob'
 
