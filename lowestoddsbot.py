@@ -18,12 +18,5 @@ class LowestOddsBot(BettingBot):
             return '%s on red' % ((blue - red) * 4)
         elif blue < red:
             return '%s on blue' % ((red - blue) * 4)
-            
-def main():
-    channel = '#test'
-    nickname = 'drybones'
-    bot = LowestOddsBot(channel, nickname)
-    bot.start()
-
-if __name__ == "__main__":
-    main()
+        else:
+            return 'no bet'

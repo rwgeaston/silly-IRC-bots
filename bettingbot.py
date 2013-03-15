@@ -12,5 +12,6 @@ class BettingBot(TestBot):
         source = e.source.nick
         if text.find("Place your bets please!") >= 0 and source == 'bowser':
             my_bet = self.bet(text)
-            sleep(uniform(0,2))
-            self.message('bowser: %s' % my_bet)
+            if my_bet != 'no bet':
+                sleep(uniform(0,2))
+                self.message('bowser: %s' % my_bet)
