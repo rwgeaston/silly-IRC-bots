@@ -21,6 +21,7 @@ class TestBot(irc.bot.SingleServerIRCBot):
         self.nickname = nickname
         self.owner = owner
         self.broken = False
+        print "%s probably running now: %s %s" % (nickname, server, port)
 
     def on_nicknameinuse(self, c, e):
         c.nick(c.get_nickname() + "_")
