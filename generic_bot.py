@@ -6,6 +6,7 @@
 
 import irc.bot
 from time import sleep
+from sanitise import ascii_me
 
 class TestBot(irc.bot.SingleServerIRCBot):
     def __init__(self, channel, nickname, owner, server='irc.rd.tandberg.com', port=6667):
@@ -34,7 +35,7 @@ class TestBot(irc.bot.SingleServerIRCBot):
         self.connection.privmsg(target, message)
         
     def check_and_answer(self, event, private):
-        text = event.arguments[0]
+        text = ascii_me(event.arguments[0])
         source = event.source.nick
         if (source == self.owner and text == "%s: feeling better?" % self.nickname):
             self.reload_modules()

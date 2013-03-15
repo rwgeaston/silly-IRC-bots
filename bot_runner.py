@@ -4,9 +4,9 @@ from threading import Thread
 from planes import PlanesBot
 from lowestoddsbot import LowestOddsBot
 
-channel = '#cslounge-traaaaains'
-server = 'irc.freenode.net'
-owner = 'rwgeaston'
+channel = '#test'
+server = 'irc.rd.tandberg.com'
+owner = 'littlerob'
 
 class run_bot(Thread):
     def __init__(self, *args):
@@ -30,8 +30,8 @@ for nickname in ['planes']:
                                          owner,
                                          server)})
     print 'created %s' % nickname
-    bot_threads[-1].daemon = True
-    bot_threads[-1].start()
+    bot_threads[nickname].daemon = True
+    bot_threads[nickname].start()
     sleep(5)
 
 print 'everyone should be running'
