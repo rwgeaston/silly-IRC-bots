@@ -3,6 +3,7 @@ from threading import Thread
 
 from planes import PlanesBot
 from lowestoddsbot import LowestOddsBot
+from adventurebot import AdventureBot
 
 channel = '#test'
 server = 'irc.rd.tandberg.com'
@@ -17,11 +18,11 @@ class run_bot(Thread):
         bot = self.args[0](*(self.args[1:]))
         bot.start()
 
-bot_map = {'planes':PlanesBot, 'drybones':LowestOddsBot}
+bot_map = {'planes':PlanesBot, 'drybones':LowestOddsBot, 'adventurer':AdventureBot}
         
 bot_threads = {}
 
-for nickname in ['planes']:
+for nickname in ['planes', 'adventurer']:
     bot_class = bot_map[nickname]
     print bot_class, nickname
     bot_threads.update({nickname:run_bot(bot_class,
