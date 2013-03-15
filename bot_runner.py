@@ -18,11 +18,11 @@ class run_bot(Thread):
         bot = self.args[0](*(self.args[1:]))
         bot.start()
 
-bot_map = {'planes':PlanesBot, 'drybones':LowestOddsBot, 'adventurer':AdventureBot}
+bot_map = {'planes':PlanesBot, 'drybones':LowestOddsBot, 'adventure':AdventureBot}
         
 bot_threads = {}
 
-for nickname in ['planes', 'adventurer']:
+for nickname in ['planes', 'adventure']:
     bot_class = bot_map[nickname]
     print bot_class, nickname
     bot_threads.update({nickname:run_bot(bot_class,
