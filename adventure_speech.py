@@ -6,7 +6,7 @@ def what_to_say(source, text):
     global log
     if text.find("adventurer") and text.find("?"):
         return ["I want to play zork!"]
-    elif text.find("zork:"):
+    elif text.find("zork:") == 0:
         player_command = text[5:]
         if '' not in last_zorks:
             log.write('%s,%s,%s\n' % (player_command, last_zorks[0], last_zorks[1]))

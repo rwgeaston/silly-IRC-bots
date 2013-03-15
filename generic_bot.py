@@ -50,7 +50,7 @@ class TestBot(irc.bot.SingleServerIRCBot):
                 self.broken = True
                 messages = []
             for count, message in enumerate(messages):
-                sleep(0.3 * count)
+                sleep(min(1.5, 0.3 * count))
                 if private:
                     self.message(source, message)
                 else:
