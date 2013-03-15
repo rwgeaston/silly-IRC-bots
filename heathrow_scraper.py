@@ -29,10 +29,12 @@ class FlightTimes(object):
         for flight in self.flights_parsed:
             try:
                 if destination in flight['Departing to'].lower():
-                    results.update({(flight['Sched. time'],
-                                     flight['Terminal']):
-                                     (flight['Flight number'],
-                                      flight['Status'])})
+                    flight_identifier = (flight['Sched. time'], flight['Terminal'])
+                    if (flight_identifier not in results or
+                        int(results[flight_identifier][0][2:]) > int(flight['Flight number'][2:])):
+                        results.update({flight_identifier:
+                                        (flight['Flight number'],
+                                         flight['Status'])})
             except KeyError as e:
                 error = True
         if error:
@@ -54,3 +56,7 @@ class FlightTimes(object):
     def get_formatted_flights(self, destination):
         times = self.get_flights(destination)
         return [self.format(flight, times[flight]) for flight in sorted(times.keys())]
+
+if __name__ == '__main__':
+    f = FlightTimes()
+    print f.get_formatted_flights('new york')

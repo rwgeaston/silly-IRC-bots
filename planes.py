@@ -8,7 +8,7 @@ from generic_bot import TestBot
 
 class PlanesBot(TestBot):
     def __init__(self, channel, nickname, server='irc.rd.tandberg.com', port=6667):
-        TestBot.__init__(self, channel, nickname, server='irc.rd.tandberg.com', port=6667)
+        TestBot.__init__(self, channel, nickname, server, port)
         self.flight_checker = FlightTimes()
         self.last_updated = time.time()
         
@@ -27,16 +27,18 @@ class PlanesBot(TestBot):
                 options = self.flight_checker.get_formatted_flights(destination)
                 if len(options) == 0:
                     self.message("I can't find any flights to %s." % destination)
-                    self.message("Trains: %s" % destination)
+                    self.message("trains: %s" % destination)
                 else:
                     for flight in options:
                         self.message(flight)
 
 def main():
-    channel = '#test'
+    channel = '#cslounge-traaaaains'
     nickname = 'planes'
-    bot = PlanesBot(channel, nickname)
+    bot = PlanesBot(channel, nickname, server='irc.freenode.net')
+    print 'lets go'
     bot.start()
+    print 'were done'
 
 if __name__ == "__main__":
     main()
