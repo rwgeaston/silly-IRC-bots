@@ -39,6 +39,7 @@ class TestBot(irc.bot.SingleServerIRCBot):
         source = event.source.nick
         if (source == self.owner and text == "%s: feeling better?" % self.nickname):
             self.reload_modules()
+            print '\n\n reloading %s\n\n' % self.nickname
             self.broken = False
         elif not self.broken:
             try:
