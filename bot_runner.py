@@ -17,16 +17,19 @@ class run_bot(Thread):
         bot = self.args[0](*(self.args[1:]))
         bot.start()
 
-bots = [[PlanesBot, 'planes'],
-        #[LowestOddsBot, 'drybones']
-        ]
+bot_map = {'planes':PlanesBot, 'drybones':LowestOddsBot}
         
-bot_threads = []
+bot_threads = {}
 
-for bot_class, nickname in bots:
+for nickname in ['planes']:
+    bot_class = bot_map[nickname]
     print bot_class, nickname
-    bot_threads.append(run_bot(bot_class, channel, nickname, owner, server))
-    print 'created'
+    bot_threads.update({nickname:run_bot(bot_class,
+                                         channel,
+                                         nickname,
+                                         owner,
+                                         server)})
+    print 'created %s' % nickname
     bot_threads[-1].daemon = True
     bot_threads[-1].start()
     sleep(5)

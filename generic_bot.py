@@ -1,18 +1,11 @@
 #! /usr/bin/env python
 # 
-# srjbot
+# based on srjbot
 #
 # based on a python libirc example by Joel Rosdahl <joel@rosdahl.net>
 
-import threading
-import random
-from datetime import date, datetime
-import time
-import urllib2, re
-
 import irc.bot
-import irc.strings
-from irc.client import ip_numstr_to_quad, ip_quad_to_numstr
+from time import sleep
 
 class TestBot(irc.bot.SingleServerIRCBot):
     def __init__(self, channel, nickname, owner, server='irc.rd.tandberg.com', port=6667):
@@ -23,31 +16,40 @@ class TestBot(irc.bot.SingleServerIRCBot):
         self.broken = False
         print "%s probably running now: %s %s" % (nickname, server, port)
 
-    def on_nicknameinuse(self, c, e):
-        c.nick(c.get_nickname() + "_")
+    def on_nicknameinuse(self, connection, event):
+        connection.nick(connection.get_nickname() + "_")
 
-    def on_welcome(self, c, e):
-        c.join(self.channel)
+    def on_welcome(self, connection, event):
+        connection.join(self.channel)
 
-    def on_pubmsg(self, c, e):
-        a = e.arguments[0]
-        self.check_and_answer(e, a)
+    def on_pubmsg(self, connection, event):
+        self.check_and_answer(event, False)
         return
     
-    def message(self, message):
-        c = self.connection
-        c.privmsg(self.channel, message)
+    def on_privmsg(self, connection, event):
+        self.check_and_answer(event, True)
+        return
+    
+    def message(self, target, message):
+        self.connection.privmsg(target, message)
         
-    def check_and_answer(self, e, text):
-        source = e.source.nick
+    def check_and_answer(self, event, private):
+        text = event.arguments[0]
+        source = event.source.nick
         if (source == self.owner and text == "%s: feeling better?" % self.nickname):
             self.reload_modules()
             self.broken = False
         elif not self.broken:
             try:
-                for message in self.decide_what_to_say(source, text):
-                    self.message(message)
+                messages = self.decide_what_to_say(source, text)
             except Exception as thisbroke:
-                self.message("%s: halp" % self.owner)
+                self.message(self.owner, "halp")
                 print self.nickname, thisbroke
                 self.broken = True
+                messages = []
+            for count, message in enumerate(messages):
+                sleep(0.3 * count)
+                if private:
+                    self.message(source, message)
+                else:
+                    self.message(self.channel, message)
