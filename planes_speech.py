@@ -9,7 +9,7 @@ def what_to_say(source, text):
     if text.find("planes:") == 0 and "trains" not in source:
         if text.find("help") >= 0:
             return ["Just say planes: <destination>"]
-        else:
+        elif len(text) > 2:
             destination = text[7:].strip()
             if time() - last_updated > 5 * 60:
                 flight_checker.update()
@@ -21,5 +21,4 @@ def what_to_say(source, text):
                         "trains: %s" % destination]
             else:
                 return options
-    else:
-        return []
+    return []
