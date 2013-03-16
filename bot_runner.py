@@ -1,10 +1,6 @@
 from time import sleep
 from threading import Thread
-
-from planes import PlanesBot
-from lowestoddsbot import LowestOddsBot
-from adventurebot import AdventureBot
-from config import channel, server, owner, bot_map
+import config
 
 class run_bot(Thread):
     def __init__(self, *args):
@@ -25,12 +21,12 @@ class run_bot(Thread):
 bot_threads = {}
 
 def start(nickname):
-    bot_class = bot_map[nickname]
+    bot_class = config.bot_map[nickname]
     bot_threads.update({nickname:run_bot(bot_class,
-                                         channel,
+                                         config.channel,
                                          nickname,
-                                         owner,
-                                         server)})
+                                         config.owner,
+                                         config.server)})
     print 'created %s' % nickname
     bot_threads[nickname].daemon = True
     bot_threads[nickname].start()

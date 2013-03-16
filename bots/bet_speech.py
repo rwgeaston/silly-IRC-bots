@@ -3,15 +3,15 @@
 from random import uniform
 from time import sleep
 
-from config import betting_bot_map, betmaster
-reload(config)
+import bet_config
+reload(bet_config)
 
 def what_to_say(source, text, nickname):
     if text.find("Place your bets please!") >= 0 and source == betmaster:
-        my_bet = which_algorithm[nickname]
+        my_bet = config.which_algorithm[nickname]
         if my_bet != 'no bet':
             sleep(uniform(0,2))
-            retun ['%s: %s' % (betmaster, my_bet)]
+            retun ['%s: %s' % (config.betmaster, my_bet)]
     return []
 
 def lowestodds(text):
