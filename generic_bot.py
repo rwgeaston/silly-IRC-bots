@@ -15,6 +15,7 @@ class TestBot(irc.bot.SingleServerIRCBot):
         self.nickname = nickname
         self.owner = owner
         self.broken = False
+        self.talk = True
         print "%s probably running now: %s %s" % (nickname, server, port)
 
     def on_nicknameinuse(self, connection, event):
@@ -50,6 +51,8 @@ class TestBot(irc.bot.SingleServerIRCBot):
                 self.broken = True
                 messages = []
             for count, message in enumerate(messages):
+                if not self.talk:
+                    break
                 sleep(min(1.5, 0.3 * count))
                 if private:
                     self.message(source, message)
