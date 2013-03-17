@@ -47,14 +47,24 @@ class TestBot(irc.bot.SingleServerIRCBot):
                 messages = self.decide_what_to_say(source, text)
             except Exception as thisbroke:
                 self.message(self.owner, "halp")
-                print self.nickname, thisbroke
+                print ("%s had an error of type %s: %s" %
+                       (self.nickname, type(thisbroke), thisbroke))
                 self.broken = True
                 messages = []
             for count, message in enumerate(messages):
                 if not self.talk:
                     break
                 sleep(min(1.5, 0.3 * count))
-                if private:
-                    self.message(source, message)
-                else:
-                    self.message(self.channel, message)
+                try:
+                    if private:
+                        self.message(source, ascii_me(message))
+                    else:
+                        self.message(self.channel, ascii_me(message))
+                except UnicodeDecodeError as error:
+                    print 'UnicodeDecodeError'
+                    print error
+                    print ascii_me(message)
+                    if private:
+                        self.message(source, 'derp; this is not ascii')
+                    else:
+                        self.message(self.channel, 'derp; this is not ascii')                   
