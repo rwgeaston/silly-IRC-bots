@@ -1,7 +1,7 @@
 from time import sleep
 from threading import Thread
 import config
-from bots import bot_map
+from bots import botmap_config
 
 class run_bot(Thread):
     def __init__(self, *args):

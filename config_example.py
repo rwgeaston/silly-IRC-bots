@@ -2,10 +2,6 @@ channel = '#mario'
 server = 'irc.rd.tandberg.com'
 owner = 'littlerob'
 
-bot_map = {'planes':PlanesBot,
-           'drybones':BettingBot,
-           'adventure':AdventureBot}
+my_address = 'SL3 6EZ'
 
-betting_bot_map = {'drybones':lowestodds}
-
-betmaster = 'bowser'
+my_TLD = 'uk'
