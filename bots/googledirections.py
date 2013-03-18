@@ -51,6 +51,7 @@ class GoogleDirections(object):
                     transit_companies = step['transit_details']['line']['agencies']
                     for company in transit_companies:
                         steps_clean.append('(%s | %s)' % (company['name'], company['url']))
+                    steps_clean.append("Get off at %s" % step['transit_details']['arrival_stop']['name'])
                     
             steps_clean.append(" -- %s" % no_html(leg['end_address']))
         copyright = self.directions['routes'][route - 1]['copyrights']

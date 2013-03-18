@@ -97,12 +97,13 @@ def parse_directions_request(request):
                 travel_hour, travel_minute = [int(thing) for thing in travel_time.split(':')]
             except ValueError:
                 options.update({'departure_time':str(int(time()))})
+            time_to_use = time()
             if ((current_time.tm_hour == travel_hour and (current_time.tm_min - 5) > travel_minute) or
                (current_time.tm_hour > travel_hour)):
-                current_time.tm_mday += 1
-            current_time.tm_hour = travel_hour
-            current_time.tm_min = travel_minute
-            options.update({time_requirement[1]:mktime(current_time())})
+                time_to_use += 60 * 60 * 24
+            time_to_use += 60 * (60 * (travel_hour - current_time.tm_hour) +
+                                 (travel_minute - current_time.tm_min))
+            options.update({time_requirement[1]:int(time_to_use)})
             break
     else:
         options.update({'departure_time':str(int(time()))})
