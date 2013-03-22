@@ -20,11 +20,14 @@ class ParseException(Exception):
 
 last_directions = None
 
-def what_to_say(source, text, my_nickname):
+def authorised_to_shup(source):
+    return True
+
+def what_to_say(source, text, nickname, private):
     global last_directions
     destination = text[7:].strip()
-    if text.find("%s:" % my_nickname) == 0:
-        request = text[len(my_nickname) + 1:].lower()
+    if text.find("%s:" % nickname) == 0:
+        request = text[len(nickname) + 1:].lower()
         if request.find("help") >= 0:
             return usage_help.split('\n')
         else:

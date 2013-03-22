@@ -1,7 +1,7 @@
 from time import sleep
 from threading import Thread
 import config
-from bots import botmap_config
+from generic_bot import Bot
 
 class run_bot(Thread):
     def __init__(self, *args):
@@ -22,8 +22,7 @@ class run_bot(Thread):
 bot_threads = {}
 
 def start(nickname):
-    bot_class = bot_map.bot_map[nickname]
-    bot_threads.update({nickname:run_bot(bot_class,
+    bot_threads.update({nickname:run_bot(Bot,
                                          config.channel,
                                          nickname,
                                          config.owner,
@@ -36,6 +35,6 @@ def stop(nickname):
     bot_threads[nickname].stop_bot()
     bot_threads[nickname]._Thread__stop()
 
-def talk(talk = False):
+def wipe():
     for nickname in bot_threads:
-        bot_threads[nickname].talking(talk)
+        bot_threads[nickname].bot.messenger.messenger.wipe()

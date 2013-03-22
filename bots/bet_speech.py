@@ -3,8 +3,8 @@
 from random import uniform
 from time import sleep
 
-import bet_config
-reload(bet_config)
+betting_bot_map = {'drybones':'lowestodds'}
+betmaster = 'bowser'
 
 def what_to_say(source, text, nickname):
     if text.find("Place your bets please!") >= 0 and source == betmaster:

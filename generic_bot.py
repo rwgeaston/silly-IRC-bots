@@ -7,8 +7,19 @@
 import irc.bot
 from time import sleep
 from sanitise import ascii_me
+from messenger import Messenger
+from threading import Thread
+import bot_action_decision
+    
+class messenger_thread(Thread):
+    def __init__(self, irc_connection):
+        self.messenger = Messenger(irc_connection)
+        Thread.__init__(self)
+        
+    def run(self):
+        self.messenger.run_loop()
 
-class TestBot(irc.bot.SingleServerIRCBot):
+class Bot(irc.bot.SingleServerIRCBot):
     def __init__(self, channel, nickname, owner, server='irc.rd.tandberg.com', port=6667):
         irc.bot.SingleServerIRCBot.__init__(self, [(server, port)], nickname, nickname)
         self.channel = channel
@@ -16,6 +27,11 @@ class TestBot(irc.bot.SingleServerIRCBot):
         self.owner = owner
         self.broken = False
         self.talk = True
+        self.messenger_config = {'wait_time':1, 'message_everyone':True}
+        self.messenger = messenger_thread(self)
+        self.messenger.daemon = True
+        self.messenger.start()
+        self.connection.send_raw = send_raw
         print "%s probably running now: %s %s" % (nickname, server, port)
 
     def on_nicknameinuse(self, connection, event):
@@ -39,32 +55,25 @@ class TestBot(irc.bot.SingleServerIRCBot):
         text = ascii_me(event.arguments[0])
         source = event.source.nick
         if (source == self.owner and text == "%s: feeling better?" % self.nickname):
-            self.reload_modules()
-            print '\n\n reloading %s\n\n' % self.nickname
-            self.broken = False
-        elif not self.broken:
             try:
-                messages = self.decide_what_to_say(source, text)
+                print '\n\n reloading decision module\n\n'
+                reload(bot_action_decision)
+                self.broken = False
             except Exception as thisbroke:
-                self.message(self.owner, "halp")
-                print ("%s had an error of type %s: %s" %
+                self.message(self.owner, "halp reloading")
+                print ("%s had an error of type %s: %s (in the reload action)" %
                        (self.nickname, type(thisbroke), thisbroke))
                 self.broken = True
-                messages = []
-            for count, message in enumerate(messages):
-                if not self.talk:
-                    break
-                sleep(min(1.5, 0.3 * count))
-                try:
-                    if private:
-                        self.message(source, ascii_me(message))
-                    else:
-                        self.message(self.channel, ascii_me(message))
-                except UnicodeDecodeError as error:
-                    print 'UnicodeDecodeError'
-                    print error
-                    print ascii_me(message)
-                    if private:
-                        self.message(source, 'derp; this is not ascii')
-                    else:
-                        self.message(self.channel, 'derp; this is not ascii')                   
+        elif not self.broken:
+            try:
+                target, messages = bot_action_decision.actions(self, source, text, private)
+                print self.nickname, target, len(messages)
+            except Exception as thisbroke:
+                self.message(self.owner, "halp")
+                print ("%s had an error of type %s: %s (in the decision thread)" %
+                       (self.nickname, type(thisbroke), thisbroke))
+                self.broken = True
+            else:
+                if target:
+                    self.messenger.messenger.add_to_queue(target, messages)
+                
