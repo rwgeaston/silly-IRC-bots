@@ -1,9 +1,4 @@
-from bots.planes import PlanesBot
-from bots.bettingbot import BettingBot
-from bots.adventurebot import AdventureBot
-from bots.googledirectionsbot import GoogleDirectionsBot
+import googledirections_speech
+reload(googledirections_speech)
 
-bot_map = {'planes':PlanesBot,
-           'drybones':BettingBot,
-           'adventure':AdventureBot,
-           'directions':GoogleDirectionsBot}
+bot_map = {'directions':googledirections_speech}
