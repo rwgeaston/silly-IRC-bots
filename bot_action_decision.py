@@ -9,10 +9,11 @@ def actions(bot, source, text, private):
             bot.messenger.messenger.add_to_queue(
                                 bot.channel,
                                 ["ok... :("])
-    messages = decision_module.what_to_say(source,
-                                           text,
-                                           bot.nickname,
-                                           private)
+    else:
+        messages = decision_module.what_to_say(source,
+                                               text,
+                                               bot.nickname,
+                                               private)
     if private:
         return source, messages
     else:
