@@ -66,7 +66,6 @@ class Bot(irc.bot.SingleServerIRCBot):
         elif not self.broken:
             try:
                 target, messages = bot_action_decision.actions(self, source, text, private)
-                print self.nickname, target, len(messages)
             except Exception as thisbroke:
                 self.message(self.owner, "halp")
                 print ("%s had an error of type %s: %s (in the decision thread)" %
