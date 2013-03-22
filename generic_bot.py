@@ -31,7 +31,6 @@ class Bot(irc.bot.SingleServerIRCBot):
         self.messenger = messenger_thread(self)
         self.messenger.daemon = True
         self.messenger.start()
-        self.connection.send_raw = send_raw
         print "%s probably running now: %s %s" % (nickname, server, port)
 
     def on_nicknameinuse(self, connection, event):
