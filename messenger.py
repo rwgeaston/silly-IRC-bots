@@ -73,5 +73,5 @@ class Messenger(object):
     def wipe(self):
         print 'wiping'
         with self.lock:
-            for target in self.message_queues:
-                del self.message_queues[target]
+            for index, target in enumerate(self.message_queues):
+                del self.message_queues[index]
