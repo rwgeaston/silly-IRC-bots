@@ -70,8 +70,10 @@ class Messenger(object):
                 for message in messages:
                     self.message_queues[-1][1].put(message)
                     
-    def wipe(self):
-        print 'wiping'
+    def wipe(self, who_to_wipe = 'everyone!'):
+        print 'wiping %s' % who_to_wipe
         with self.lock:
             for index, target in enumerate(self.message_queues):
-                del self.message_queues[index]
+                if who_to_wipe == 'everyone!' or who_to_wipe == target[0]:
+                    del self.message_queues[index]
+            print self.message_queues

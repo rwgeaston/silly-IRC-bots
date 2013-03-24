@@ -5,8 +5,11 @@ def actions(bot, source, text, private):
     messages = []
     decision_module = botmap_config.bot_map[bot.nickname]
     if bot.nickname in text and ("shup" in text or ('shut' in text and 'up' in text)):
-        if decision_module.authorised_to_shup(source):
-            bot.messenger.messenger.wipe()
+        if private:
+            bot.messenger.messenger.wipe(source)
+            messages = ["ok... :("]
+        elif decision_module.authorised_to_shup(source, bot.owner):
+            bot.messenger.messenger.wipe(bot.channel)
             messages = ["ok... :("]
     else:
         messages = decision_module.what_to_say(source,

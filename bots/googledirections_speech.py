@@ -20,7 +20,7 @@ class ParseException(Exception):
 
 last_directions = None
 
-def authorised_to_shup(source):
+def authorised_to_shup(source, owner):
     return True
 
 def what_to_say(source, text, nickname, private):

@@ -1,7 +1,3 @@
-import config
-
-last_directions = None
-
 def authorised_to_shup(source):
     return True
 
