@@ -59,34 +59,33 @@ class BettingAlgorithms(object):
         log_page = [logline.split(',')
                         for logline in log_page.split('<br />')]
         
-    def handicaps(self):
-        handicaps = urllib2.urlopen('http://%s/robaverage.php' %
-                                    bet_config.mario_stats_ip)
+    def handicaps(self, pagename):
+        handicaps = urllib2.urlopen(
+            'http://{}/{}.php'.format(bet_config.mario_stats_ip, pagename))
         handicaps = handicaps.read()
         handicaps = dict([logline.split(',')
                           for logline in handicaps.split('<br/>')][:-1])
 
     def underrated_long_term_average(self, text):
-        log_page = self.log_page()
-        handicaps = self.handicaps()
-        valuations = {'blue':0, 'red':0}
-        for player in log_page[1:5]:
-            valuations[player[0]] += float(handicaps[player[1]])
-        return self.underrated(valuations, 25)
+        handicaps = self.handicaps('robaverage')
+        return self.underrated(handicaps, 25)
+
     
     def underrated_my_estimates(self, text):
-        log_page = self.log_page()
+        handicaps = self.handicaps('robprediction')
+        return self.underrated(handicaps, 25)
+    
+    def underrated(self, handicaps, enthusiasm):
         valuations = {'blue':0, 'red':0}
+        log_page = self.log_page()
         for player in log_page[1:5]:
             valuations[player[0]] += float(handicaps[player[1]])
         return self.underrated(valuations, 25)
-    
-    def underrated(self, valuations, enthusiasm):
         amount_to_bet = abs(int((valuations['blue'] -
                                  valuations['red']) * enthusiasm))
-        if valuations['blue'] - valuations['red'] > 0.7:
+        if valuations['blue'] - valuations['red'] > 0.5:
             return "bowser: %s on blue" % amount_to_bet
-        elif valuations['red'] - valuations['blue'] > 0.7:
+        elif valuations['red'] - valuations['blue'] > 0.5:
             return "bowser: %s on red" % amount_to_bet
 
 betting_algorithms = BettingAlgorithms()
