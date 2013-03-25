@@ -25,7 +25,7 @@ class BettingAlgorithms(object):
            team_odds = text.split("0.")[index + 1].split(' ')[0]
            if len(team_odds) == 1:
               team_odds = team_odds + '0'
-           team_odds.update({team:int(team_odds)})
+           odds.update({team:int(team_odds)})
         return odds
     
     def lowestodds(self, text):
