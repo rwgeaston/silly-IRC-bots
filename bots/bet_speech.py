@@ -61,6 +61,7 @@ class BettingAlgorithms(object):
         log_page = log_page.read()
         log_page = [logline.split(',')
                         for logline in log_page.split('<br />')]
+        return log_page
         
     def handicaps(self, pagename):
         handicaps = urlopen(
@@ -68,6 +69,7 @@ class BettingAlgorithms(object):
         handicaps = handicaps.read()
         handicaps = dict([logline.split(',')
                           for logline in handicaps.split('<br/>')][:-1])
+        return handicaps
 
     def underrated_long_term_average(self, text):
         handicaps = self.handicaps('robaverage')
