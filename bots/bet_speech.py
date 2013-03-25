@@ -85,7 +85,6 @@ class BettingAlgorithms(object):
         log_page = self.log_page()
         for player in log_page[1:5]:
             valuations[player[0]] += float(handicaps[player[1]])
-        return self.underrated(valuations, 25)
         amount_to_bet = abs(int((valuations['blue'] -
                                  valuations['red']) * enthusiasm))
         if valuations['blue'] - valuations['red'] > 0.5:
