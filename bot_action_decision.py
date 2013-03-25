@@ -15,7 +15,8 @@ def actions(bot, source, text, private):
         messages = decision_module.what_to_say(source,
                                                text,
                                                bot.nickname,
-                                               private)
+                                               private,
+                                               bot.messenger.messenger)
     if private:
         return source, messages
     else:

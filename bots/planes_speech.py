@@ -4,7 +4,7 @@ from heathrow_scraper import FlightTimes
 flight_checker = FlightTimes()
 last_updated = time()
 
-def what_to_say(source, text, nickname, private):
+def what_to_say(source, text, nickname, private, messenger):
     global last_updated
     destination = text[7:].strip()
     if text.find("planes:") == 0 and "trains" not in source:

@@ -9,7 +9,7 @@ reload(bet_config)
 def authorised_to_shup(source, owner):
     return True
 
-def what_to_say(source, text, nickname, private):
+def what_to_say(source, text, nickname, private, messenger):
     if text.find("Place your bets please!") >= 0 and source == bet_config.betmaster:
         alg_name = bet_config.betting_bot_map[nickname]
         my_bet = getattr(betting_algorithms, alg_name)(text)

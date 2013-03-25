@@ -23,7 +23,7 @@ last_directions = None
 def authorised_to_shup(source, owner):
     return True
 
-def what_to_say(source, text, nickname, private):
+def what_to_say(source, text, nickname, private, messenger):
     global last_directions
     destination = text[7:].strip()
     if text.find("%s:" % nickname) == 0:
