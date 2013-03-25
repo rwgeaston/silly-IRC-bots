@@ -41,16 +41,19 @@ class BettingAlgorithms(object):
         odds = self.get_odds(text)
         if odds['draw'] < 10:
             return '20 on a draw'
+        return "no bet"
     
     def red(self, text):
         odds = self.get_odds(text)
         if odds['red'] < 45:
             return '20 on red'
+        return "no bet"
         
     def blue(self, text):
         odds = self.get_odds(text)
         if odds['blue'] < 45:
             return '20 on blue'
+        return "no bet"
         
     def log_page(self):
         log_page = urllib2.urlopen('http://%s/lukelog.php' %
@@ -84,8 +87,9 @@ class BettingAlgorithms(object):
         amount_to_bet = abs(int((valuations['blue'] -
                                  valuations['red']) * enthusiasm))
         if valuations['blue'] - valuations['red'] > 0.5:
-            return "bowser: %s on blue" % amount_to_bet
+            return "%s on blue" % amount_to_bet
         elif valuations['red'] - valuations['blue'] > 0.5:
-            return "bowser: %s on red" % amount_to_bet
+            return "%s on red" % amount_to_bet
+        return "no bet"
 
 betting_algorithms = BettingAlgorithms()
