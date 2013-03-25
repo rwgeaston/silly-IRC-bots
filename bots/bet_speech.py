@@ -56,14 +56,14 @@ class BettingAlgorithms(object):
         return "no bet"
         
     def log_page(self):
-        log_page = urllib2.urlopen('http://%s/lukelog.php' %
+        log_page = urlopen('http://%s/lukelog.php' %
                                    bet_config.mario_stats_ip)
         log_page = log_page.read()
         log_page = [logline.split(',')
                         for logline in log_page.split('<br />')]
         
     def handicaps(self, pagename):
-        handicaps = urllib2.urlopen(
+        handicaps = urlopen(
             'http://{}/{}.php'.format(bet_config.mario_stats_ip, pagename))
         handicaps = handicaps.read()
         handicaps = dict([logline.split(',')
