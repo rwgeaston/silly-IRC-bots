@@ -24,7 +24,7 @@ def what_to_say(bot, source, text, private):
     elif text == "{}: new phrase".format(bot.nickname):
         waiting_for_new_phrases.update({source:[]})
     elif text == "{}: forget".format(bot.nickname):
-        forget.update({source:True})
+        phrases_to_forget.update({source:True})
     else:
         messages = []
         for phrase in phrasebook:
@@ -44,7 +44,7 @@ def learn_new_phrase(source, text):
         return ['New phrase learnt! "{trigger}" -> "{response}"'.format(trigger=trigger, response=response)]
                        
 def forget_phrase(source, text):
-    phrases_file.write('{trigger},SILENCE\n'.format(trigger=text))
-    phrasebook.update({trigger:response})
-    del waiting_for_new_phrases[source]
-    return ['Will now not respond to: {trigger}'.format(trigger=trigger)]
+    phrases_file.write('{trigger}COMMAHERESILENCE\n'.format(trigger=text))
+    phrasebook.update({text:'SILENCE'})
+    del phrases_to_forget[source]
+    return ['Will now not respond to: {trigger}'.format(trigger=text)]
