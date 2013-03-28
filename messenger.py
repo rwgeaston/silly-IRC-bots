@@ -40,7 +40,6 @@ class Messenger(object):
                 self.message(irc_connection.owner, "halp")
                 print ("%s had an error of type %s: %s (in the messenger thread)" %
                        (self.nickname, type(thisbroke), thisbroke))
-                self.broken = True
                 
     def find_message(self):
         with self.lock:

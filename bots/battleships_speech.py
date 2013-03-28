@@ -23,6 +23,7 @@ class BattleshipsBot(object):
         self.not_playing = "{source}: I'm sorry to have to be the one to tell you this, but you aren't playing."
 
     def request_for_me(self, bot, source, text, private):
+        self.bot = bot
         if text.startswith('challenge'):
             return self.challenge(source, text[len('challenge'):].strip())
         elif text in ['accept', 'cancel', 'forfeit', 'help', 'current games', 'my moves']:
@@ -51,7 +52,7 @@ class BattleshipsBot(object):
                     return ["{source}: Sorry, {target} has already been challenged. Ask them to cancel it so they can play with you. Or wait."\
                             .format(source=source, target=target)]
         self.active_games.append(BattleshipsGame((source, target),
-                                                 self.messenger,
+                                                 self.bot,
                                                  self.grid_size,
                                                  self.valid_row_letters,
                                                  self.valid_column_numbers))
@@ -162,12 +163,12 @@ Say {nickname}: my moves to see where you have already played in this game.'''\
 class BattleshipsGame(object):
     def __init__(self,
                  players,
-                 messenger,
+                 bot,
                  grid_size,
                  valid_row_letters,
                  valid_column_numbers):
         self.players = players
-        self.messenger = messenger
+        self.bot = bot
         self.grid_size = grid_size
         
         # later this will be 'waiting for positions' or 'playing'
@@ -217,11 +218,11 @@ class BattleshipsGame(object):
         for boat in boat_list:
             if new_boat.overlaps(boat):
                 return ["That overlaps with another boat you already placed:",
-                        "The {type} at {coord} {direction}"
-                        .format(type=boat.boat_type,
+                        "The {boat_type} at {coord} {direction}"
+                        .format(boat_type=boat.boat_type,
                                 coord=self.coords_to_printable(boat.location),
                                 direction=self.human_direction_map[boat.direction])]
-        boat_list.append(boat)
+        boat_list.append(new_boat)
         messages = []
         if boat_type in self.boats_to_be_positioned[player_number]:
             self.boats_to_be_positioned[player_number].remove(boat_type)    
@@ -233,7 +234,7 @@ class BattleshipsGame(object):
             len(self.boats_to_be_positioned[1]) == 0):
             self.status = 'playing'
             self.messenger.add_to_queue()
-        
+
 class positioned_boat(object):
     def __init__(boat_type, location, direction):
         self.boat_type = boat_type

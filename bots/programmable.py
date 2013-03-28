@@ -3,9 +3,7 @@ phrases_file = open(phrases_filename, 'r')
 phrases_raw = phrases_file.readlines()
 phrases_file.close()
 
-phrases = dict([phrase.strip().split(',') for phrase in phrases_raw])
-
-print phrases
+phrasebook = dict([phrase.strip().split(',') for phrase in phrases_raw])
 
 phrases_file = open(phrases_filename, 'a')
 
@@ -29,24 +27,24 @@ def what_to_say(bot, source, text, private):
         forget.update({source:True})
     else:
         messages = []
-        for phrase in phrases:
-            if phrase in text and phrases[phrase] != 'SILENCE':
-                messages.append(phrases[phrase])
+        for phrase in phrasebook:
+            if phrase in text and phrasebook[phrase] != 'SILENCE':
+                messages.append(phrasebook[phrase])
         return messages
     return []
 
 def learn_new_phrase(source, text):
     trigger, response = waiting_for_new_phrases[source]
+    del waiting_for_new_phrases[source]
     if len(trigger) < 4:
         return ["I'm not learning anything with a trigger that short!"]
     else:
         phrases_file.write('{trigger},{response}\n'.format(trigger=trigger, response=response))
-        phrases.update({trigger:response})
-        del waiting_for_new_phrases[source]
+        phrasebook.update({trigger:response})
         return ['New phrase learnt! "{trigger}" -> "{response}"'.format(trigger=trigger, response=response)]
                        
 def forget_phrase(source, text):
     phrases_file.write('{trigger},SILENCE\n'.format(trigger=text))
-    phrases.update({trigger:response})
+    phrasebook.update({trigger:response})
     del waiting_for_new_phrases[source]
     return ['Will now not respond to: {trigger}'.format(trigger=trigger)]
