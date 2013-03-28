@@ -1,3 +1,5 @@
+import re
+
 phrases_filename = 'bots\learnt_phrases.txt'
 phrases_file = open(phrases_filename, 'r')
 phrases_raw = phrases_file.readlines()
@@ -28,8 +30,17 @@ def what_to_say(bot, source, text, private):
     else:
         messages = []
         for phrase in phrasebook:
-            if phrase in text and phrasebook[phrase] != 'SILENCE':
-                messages.append(phrasebook[phrase])
+            match = re.search(phrase,text)
+            if match and phrasebook[phrase] != 'SILENCE':
+                groups = match.groups()
+                if groups:
+                    try:
+                        message = phrasebook[phrase] % groups
+                        messages.append(message)
+                    except:
+                        pass
+                else:
+                    messages.append(phrasebook[phrase])
         return messages
     return []
 
