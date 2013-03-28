@@ -37,7 +37,7 @@ class Messenger(object):
                 print [message]
                 raise
             except Exception as thisbroke:
-                self.message(self.owner, "halp")
+                self.message(irc_connection.owner, "halp")
                 print ("%s had an error of type %s: %s (in the messenger thread)" %
                        (self.nickname, type(thisbroke), thisbroke))
                 self.broken = True

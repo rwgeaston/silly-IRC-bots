@@ -4,12 +4,12 @@ from heathrow_scraper import FlightTimes
 flight_checker = FlightTimes()
 last_updated = time()
 
-def what_to_say(source, text, nickname, private, messenger):
+def what_to_say(bot, source, text, private):
     global last_updated
     destination = text[7:].strip()
-    if text.find("planes:") == 0 and "trains" not in source:
+    if text.find("{}:".format(bot.nickname)) == 0 and "trains" not in source:
         if text.find("help") >= 0:
-            return ["Just say planes: <destination>"]
+            return ["Just say {}: <destination>".format(bot.nickname)]
         elif text.find("crash") >= 0:
             return ["I'm being flown by a bot. I can't crash any more!"]
         elif text.find("rwge") >= 0:

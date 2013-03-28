@@ -4,13 +4,13 @@ def authorised_to_shup(source, owner):
     else:
         return False
 
-def what_to_say(source, text, nickname, private, messenger):
-    battleships_bot.messenger = messenger
+def what_to_say(bot, source, text, private):
     if text.startswith('{}:'.format(nickname)):
         request = text[len(nickname) + 1:].strip()
-        return battleships_bot.request_for_me(source, request, nickname, private)
+        return battleships_bot.request_for_me(bot, source, request, private)
     elif private:
-        return battleships_bot.request_for_me(source, request, nickname, private)
+        return battleships_bot.request_for_me(bot, source, request, private)
+    return []
 
 class BattleshipsBot(object):
     def __init__(self):
@@ -22,7 +22,7 @@ class BattleshipsBot(object):
         self.active_games = []
         self.not_playing = "{source}: I'm sorry to have to be the one to tell you this, but you aren't playing."
 
-    def request_for_me(self, source, text, nickname, private):
+    def request_for_me(self, bot, source, text, private):
         if text.startswith('challenge'):
             return self.challenge(source, text[len('challenge'):].strip())
         elif text in ['accept', 'cancel', 'forfeit', 'help', 'current games', 'my moves']:
@@ -50,7 +50,11 @@ class BattleshipsBot(object):
                 else:
                     return ["{source}: Sorry, {target} has already been challenged. Ask them to cancel it so they can play with you. Or wait."\
                             .format(source=source, target=target)]
-        self.active_games.append(BattleshipsGame((source, target), self.messenger))
+        self.active_games.append(BattleshipsGame((source, target),
+                                                 self.messenger,
+                                                 self.grid_size,
+                                                 self.valid_row_letters,
+                                                 self.valid_column_numbers))
         return ['{source} has challenged {target}! Waiting for accept...'
                 .format(source=source, target=target)]
     
@@ -156,9 +160,15 @@ Say {nickname}: my moves to see where you have already played in this game.'''\
         return help_text.split('\n')
 
 class BattleshipsGame(object):
-    def __init__(self, players, messenger):
+    def __init__(self,
+                 players,
+                 messenger,
+                 grid_size,
+                 valid_row_letters,
+                 valid_column_numbers):
         self.players = players
         self.messenger = messenger
+        self.grid_size = grid_size
         
         # later this will be 'waiting for positions' or 'playing'
         # need the messages to tell people what's going on
@@ -166,11 +176,20 @@ class BattleshipsGame(object):
         self.info_messages = {'challenge':'{} has challenged {}.',
                               'waiting for positions':'{} and {} are about to start a game.',
                               'playing':'{} and {} are in a game.'}
-        self.whose_turn = players[1]
-        self.positions[[],[]]
+        self.direction_map = {'H':(1, 0), 'V':(0, 1)}
+        self.human_direction_map = {(1, 0):'H', (0, 1):'V'}
+        self.whose_turn = 1
+        self.boats = [{}, {}]
+        self.boats_to_be_positioned = [['carrier', 'battleship',
+                                        'submarine', 'destroyer',
+                                        'patrol']
+                                       for index in range(2)]
         
     def info(self):
         return self.info_messages[self.status].format(*self.players)
+    
+    def next_player(self):
+        self.whose_turn = (self.whose_turn + 1) % 2
     
     def make_move(self, source, text):
         # attack there
@@ -178,9 +197,56 @@ class BattleshipsGame(object):
     
     def print_moves(self, source):
         # print the moves
-        pass
+        return ['print moves!']
+    
+    def coords_to_printable(self, coords_internal):
+        return chr(65 + coords_internal[1]) + str(coords_internal[0])
+    
+    def coords_to_internal(self, coords_human):
+        return (ord(65 + coords_human[1]), int(coords_human[0]))
     
     def set_position(self, source, text):
-        text.split('')
-
+        boat_type, raw_location, raw_direction = text.split(' ')
+        start_coords = self.coords_to_internal(raw_location)
+        direction = self.direction_map[raw_direction]
+        new_boat = positioned_boat(boat_type, start_coords, direction)
+        player_number = self.players.index(source)
+        boat_list = self.boats[player_number]
+        if new_boat.off_edge_of_board(self.grid_size):
+            return ["That doesn't fit there! It goes off the edge of the board."]
+        for boat in boat_list:
+            if new_boat.overlaps(boat):
+                return ["That overlaps with another boat you already placed:",
+                        "The {type} at {coord} {direction}"
+                        .format(type=boat.boat_type,
+                                coord=self.coords_to_printable(boat.location),
+                                direction=self.human_direction_map[boat.direction])]
+        boat_list.append(boat)
+        messages = []
+        if boat_type in self.boats_to_be_positioned[player_number]:
+            self.boats_to_be_positioned[player_number].remove(boat_type)    
+        else:
+            messages.append("That one has already been placed but I'll let you move it.")
+        messages.append("Boat positioned.", "Boats still to place are: {}"
+                        .format(", ".join(self.boats_to_be_positioned)))
+        if (len(self.boats_to_be_positioned[0]) == 0 and
+            len(self.boats_to_be_positioned[1]) == 0):
+            self.status = 'playing'
+            self.messenger.add_to_queue()
+        
+class positioned_boat(object):
+    def __init__(boat_type, location, direction):
+        self.boat_type = boat_type
+        self.location = location
+        self.direction = direction
+        self.boat_length = {'carrier':5, 'battleship':4,
+                            'submarine':3, 'destroyer':3,
+                            'patrol':2}[boat_type]
+        self.coords = [tuple([start_coords[i] + (direction[i] * index) for i in range(2)])
+                       for index in range(self.boat_length)]
+        
+    def off_edge_of_board(self, grid_size):
+        return max(self.coords[-1]) + 1 > grid_size
+        
+    
 battleships_bot = BattleshipsBot()

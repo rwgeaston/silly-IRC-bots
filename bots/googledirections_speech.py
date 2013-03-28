@@ -23,11 +23,11 @@ last_directions = None
 def authorised_to_shup(source, owner):
     return True
 
-def what_to_say(source, text, nickname, private, messenger):
+def what_to_say(bot, source, text, private):
     global last_directions
     destination = text[7:].strip()
-    if text.find("%s:" % nickname) == 0:
-        request = text[len(nickname) + 1:].lower()
+    if text.find("%s:" % bot.nickname) == 0:
+        request = text[len(bot.nickname) + 1:].lower()
         if request.find("help") >= 0:
             return usage_help.split('\n')
         else:

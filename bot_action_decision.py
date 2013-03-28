@@ -12,11 +12,7 @@ def actions(bot, source, text, private):
             bot.messenger.messenger.wipe(bot.channel)
             messages = ["ok... :("]
     else:
-        messages = decision_module.what_to_say(source,
-                                               text,
-                                               bot.nickname,
-                                               private,
-                                               bot.messenger.messenger)
+        messages = decision_module.what_to_say(bot, source, text, private)
     if private:
         return source, messages
     else:
