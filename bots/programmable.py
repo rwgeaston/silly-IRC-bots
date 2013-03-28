@@ -3,7 +3,7 @@ phrases_file = open(phrases_filename, 'r')
 phrases_raw = phrases_file.readlines()
 phrases_file.close()
 
-phrasebook = dict([phrase.strip().split(',') for phrase in phrases_raw])
+phrasebook = dict([phrase.strip().split('COMMAHERE') for phrase in phrases_raw])
 
 phrases_file = open(phrases_filename, 'a')
 
@@ -39,7 +39,7 @@ def learn_new_phrase(source, text):
     if len(trigger) < 4:
         return ["I'm not learning anything with a trigger that short!"]
     else:
-        phrases_file.write('{trigger},{response}\n'.format(trigger=trigger, response=response))
+        phrases_file.write('{trigger}COMMAHERE{response}\n'.format(trigger=trigger, response=response))
         phrasebook.update({trigger:response})
         return ['New phrase learnt! "{trigger}" -> "{response}"'.format(trigger=trigger, response=response)]
                        
