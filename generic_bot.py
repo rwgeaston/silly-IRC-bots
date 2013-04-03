@@ -68,10 +68,20 @@ class Bot(irc.bot.SingleServerIRCBot):
                 target, messages = bot_action_decision.actions(self, source, text, private)
             except Exception as thisbroke:
                 self.message(self.owner, "halp")
-                print ("%s had an error of type %s: %s (in the decision thread)" %
-                       (self.nickname, type(thisbroke), thisbroke))
+                try:
+                    error = ("%s had an error of type %s: %s (in the decision thread)" %
+                            (self.nickname, type(thisbroke), thisbroke))
+                    print error
+                    self.message(self.owner, error)
+                except:
+                    print 'had some trouble with the error logging'
+                try:
+                    traceback = format_exc(thisbroke).split('\n')
+                    print tracebook
+                    self.message(self.owner, traceback)
+                except:
+                    print 'had some trouble with the traceback'
                 self.broken = True
             else:
                 if target:
                     self.messenger.messenger.add_to_queue(target, messages)
-                
