@@ -10,7 +10,9 @@ from sanitise import ascii_me
 from messenger import Messenger
 from threading import Thread
 import bot_action_decision
-    
+from traceback import format_exc
+
+
 class messenger_thread(Thread):
     def __init__(self, irc_connection):
         self.messenger = Messenger(irc_connection)
