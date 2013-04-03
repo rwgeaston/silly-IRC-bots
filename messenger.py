@@ -3,6 +3,7 @@ from time import sleep
 from sanitise import ascii_me
 from threading import Lock
 
+
 class Messenger(object):
     def __init__(self, irc_connection):
         self.message = irc_connection.message
@@ -10,7 +11,7 @@ class Messenger(object):
         self.lock = Lock()
         self.message_queues = []
         self.queue_to_check = 0
-        
+
     def run_loop(self):
         while True:
             sleep(self.irc_connection.messenger_config['wait_time'])
@@ -26,7 +27,7 @@ class Messenger(object):
             else:
                 target, message = self.find_message()
                 self.send_message_with_exception_catch(target, message)
-                
+
     def send_message_with_exception_catch(self, target, message):
         if message:
             try:
@@ -40,7 +41,7 @@ class Messenger(object):
                 self.message(irc_connection.owner, "halp")
                 print ("%s had an error of type %s: %s (in the messenger thread)" %
                        (self.nickname, type(thisbroke), thisbroke))
-                
+
     def find_message(self):
         with self.lock:
             for index in reversed(xrange(len(self.message_queues))):
@@ -68,8 +69,8 @@ class Messenger(object):
                 self.message_queues.append([new_target, Queue()])
                 for message in messages:
                     self.message_queues[-1][1].put(message)
-                    
-    def wipe(self, who_to_wipe = 'everyone!'):
+
+    def wipe(self, who_to_wipe='everyone!'):
         print 'wiping %s' % who_to_wipe
         with self.lock:
             for index, target in enumerate(self.message_queues):
