@@ -109,18 +109,18 @@ monitor_threads = []
 def what_to_say(bot, source, request, private):
     if request.find(bot.nickname) == 0:
         request = request[len(bot.nickname) + 1:].strip()
-    if source == bot.owner:
-        if request == 'start':
-            monitor_threads.append(MonitorMarioSiteThread(bot))
-            monitor_threads[0].daemon = True
-            monitor_threads[0].start()
-        elif request == 'stop':
-            monitor_threads[0].alive = False
-            del monitor_thread[0]
-        elif request == 'test new':
-            monitor_threads[0].monitor.message_current_game()
-        elif request == 'test finished':
-            monitor_threads[0].monitor.message_results()
-    if request == 'handicaps':
-        monitor_threads[0].monitor.message_handicaps()
+        if source == bot.owner:
+            if request == 'start':
+                monitor_threads.append(MonitorMarioSiteThread(bot))
+                monitor_threads[0].daemon = True
+                monitor_threads[0].start()
+            elif request == 'stop':
+                monitor_threads[0].alive = False
+                del monitor_thread[0]
+            elif request == 'test new':
+                monitor_threads[0].monitor.message_current_game()
+            elif request == 'test finished':
+                monitor_threads[0].monitor.message_results()
+        if request == 'handicaps':
+            monitor_threads[0].monitor.message_handicaps()
     return []
