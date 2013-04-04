@@ -107,6 +107,8 @@ class MonitorMarioSiteThread(Thread):
 monitor_threads = []
 
 def what_to_say(bot, source, request, private):
+    if request.find(bot.nickname) == 0:
+        request = request[len(bot.nickname) + 1:].strip()
     if source == bot.owner:
         if request == 'start':
             monitor_threads.append(MonitorMarioSiteThread(bot))
