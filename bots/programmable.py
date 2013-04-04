@@ -29,6 +29,7 @@ def what_to_say(bot, source, text, private):
         messages = []
         for phrase in phrasebook:
             if phrase in text and phrasebook[phrase] != 'SILENCE':
+                print phrase, phrasebook[phrase]
                 messages.append(phrasebook[phrase])
         return messages
     return []
