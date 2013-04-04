@@ -7,7 +7,7 @@ class FlightTimes(object):
         
     def update(self):
         departures = urlopen('http://www.heathrowairport.com/flight-information/live-flight-departures')
-        raw_page = ''.join([line for line in departures])
+        raw_page = departures.read()
         
         start = raw_page.find('<table id="timeTable" summary="Flight Timetable search results">')
         end = raw_page.find('</table>')
