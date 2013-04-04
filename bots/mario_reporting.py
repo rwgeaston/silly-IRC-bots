@@ -35,31 +35,31 @@ class MonitorMarioSite(object):
             self.message_current_game()
 
     def get_current_game(self):
-        page = urlopen('http://{}/lukelog.php'.format(self.mario_ip)
+        page = urlopen('http://{}/lukelog.php'.format(self.mario_ip))
         raw_content = page.read()[15:-13]
         lines = raw_content.split('<br />')
         game = {'timestamp':lines[0], 'Red':[], 'Blue':[]}
         for player in lines[1:]:
             colour, name, character, vehicle = player.split(',')
-            game[capitalise(colour)].append((capitalise(name), character, vehicle))
+            game[capitalise(colour)].append([capitalise(name), character, vehicle])
         return game
 
     def get_results(self):
-        page = urlopen('http://{}/robhandicaps.php'.format(self.mario_ip)
+        page = urlopen('http://{}/robhandicaps.php'.format(self.mario_ip))
         raw_content = page.read()
         lines = raw_content.split('<br />')
         timestamp, result = lines[0].split(',')
         results = {'timestamp':timestamp,
                 'result':result,
                 'players':[]}
-        for player in lines[1:]:
+        for player in lines[1:-1]:
             name, handicap = player.split(',')
             results['players'].append((name, handicap))
         return results
 
     def message(self, messages):
         if self.talk:
-            self.bot.message(self.channel, messages)
+            self.bot.message(self.bot.channel, messages)
 
     def message_results(self):
         result_split = self.results['result'].split(' ')
@@ -76,8 +76,8 @@ class MonitorMarioSite(object):
         self.message(messages)
 
     def get_handicap(self, player):
-        for listing in self.results['handicaps']:
-            if listing[0] == player:
+        for listing in self.results['players']:
+            if capitalise(listing[0]) == player:
                 return listing[1]
 
     def message_current_game(self):
@@ -90,17 +90,18 @@ class MonitorMarioSite(object):
 
     def message_handicaps(self):
         messages = ["{} {}".format(*player) for player in self.results['players']]
+        self.message(messages)
 
 class MonitorMarioSiteThread(Thread):
     def __init__(self, bot):
         self.bot = bot
         self.alive = True
-        monitor = MonitorMarioSite(bot, mario_website)
+        self.monitor = MonitorMarioSite(bot, mario_website)
         Thread.__init__(self)
 
     def run(self):
         while self.alive:
-            monitor.update()
+            self.monitor.update()
             sleep(30)
 
 monitor_threads = []
@@ -108,15 +109,16 @@ monitor_threads = []
 def what_to_say(bot, source, request, private):
     if source == bot.owner:
         if request == 'start':
-            monitor_thread.append(MonitorMarioSiteThread(bot))
-            monitor_thread.daemon = True
-            monitor_thread.start()
+            monitor_threads.append(MonitorMarioSiteThread(bot))
+            monitor_threads[0].daemon = True
+            monitor_threads[0].start()
         elif request == 'stop':
-            monitor_thread[0].alive = False
+            monitor_threads[0].alive = False
             del monitor_thread[0]
         elif request == 'test new':
-            monitor_thread[0].monitor.message_current_game()
+            monitor_threads[0].monitor.message_current_game()
         elif request == 'test finished':
-            monitor_thread[0].monitor.message_results()
-    elif request == 'handicaps':
-        monitor_thread[0].monitor.message_handicaps()
+            monitor_threads[0].monitor.message_results()
+    if request == 'handicaps':
+        monitor_threads[0].monitor.message_handicaps()
+    return []

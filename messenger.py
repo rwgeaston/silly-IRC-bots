@@ -6,7 +6,7 @@ from threading import Lock
 
 class Messenger(object):
     def __init__(self, irc_connection):
-        self.message = irc_connection.message
+        self.message = irc_connection.raw_message
         self.irc_connection = irc_connection
         self.lock = Lock()
         self.message_queues = []

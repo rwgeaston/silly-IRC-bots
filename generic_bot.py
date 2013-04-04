@@ -49,8 +49,11 @@ class Bot(irc.bot.SingleServerIRCBot):
         self.check_and_answer(event, True)
         return
     
-    def message(self, target, message):
-        self.connection.privmsg(target, message)
+    def message(self, target, messages):
+        self.messenger.messenger.add_to_queue(target, messages)
+
+    def raw_message(self, target, messages):
+        self.connection.privmsg(target, messages)
         
     def check_and_answer(self, event, private):
         text = ascii_me(event.arguments[0])
@@ -61,7 +64,7 @@ class Bot(irc.bot.SingleServerIRCBot):
                 reload(bot_action_decision)
                 self.broken = False
             except Exception as thisbroke:
-                self.message(self.owner, "halp reloading")
+                self.raw_message(self.owner, "halp reloading")
                 print ("%s had an error of type %s: %s (in the reload action)" %
                        (self.nickname, type(thisbroke), thisbroke))
                 self.broken = True
@@ -69,21 +72,21 @@ class Bot(irc.bot.SingleServerIRCBot):
             try:
                 target, messages = bot_action_decision.actions(self, source, text, private)
             except Exception as thisbroke:
-                self.message(self.owner, "halp")
+                self.raw_message(self.owner, "halp")
                 try:
                     error = ("%s had an error of type %s: %s (in the decision thread)" %
                             (self.nickname, type(thisbroke), thisbroke))
                     print error
-                    self.message(self.owner, error)
+                    self.message(self.owner, [error])
                 except:
                     print 'had some trouble with the error logging'
                 try:
-                    traceback = format_exc(thisbroke).split('\n')
-                    print tracebook
-                    self.message(self.owner, traceback)
+                    traceback = format_exc(thisbroke)
+                    print traceback
+                    self.message(self.owner, [traceback])
                 except:
                     print 'had some trouble with the traceback'
                 self.broken = True
             else:
                 if target:
-                    self.messenger.messenger.add_to_queue(target, messages)
+                    self.message(target, messages)
