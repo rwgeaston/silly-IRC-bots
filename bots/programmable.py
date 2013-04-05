@@ -39,7 +39,7 @@ def what_to_say(bot, source, text, private):
                 groups = match.groups()
                 if groups:
                     try:
-                        message = phrasebook[phrase] % groups
+                        message = phrasebook[phrase].format(**match.groupdict())
                         messages.append(message)
                     except:
                         pass
