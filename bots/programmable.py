@@ -30,7 +30,11 @@ def what_to_say(bot, source, text, private):
     else:
         messages = []
         for phrase in phrasebook:
-            match = re.search(phrase,text)
+            try:
+                match = re.search(phrase,text)
+            except:
+                #assuming re exception
+                match = re.search(re.escape(phrase),text)
             if match and phrasebook[phrase] != 'SILENCE':
                 groups = match.groups()
                 if groups:
