@@ -44,17 +44,20 @@ class Bot(irc.bot.SingleServerIRCBot):
     def on_pubmsg(self, connection, event):
         self.check_and_answer(event, False)
         return
-    
+
     def on_privmsg(self, connection, event):
         self.check_and_answer(event, True)
         return
-    
+
     def message(self, target, messages):
         self.messenger.messenger.add_to_queue(target, messages)
 
-    def raw_message(self, target, messages):
-        self.connection.privmsg(target, messages)
-        
+    def raw_message(self, target, message):
+        message = message.strip()
+        message = message.replace('\n', '')
+        message = message.replace('\r', '')
+        self.connection.privmsg(target, message)
+
     def check_and_answer(self, event, private):
         text = ascii_me(event.arguments[0])
         source = event.source.nick
@@ -65,28 +68,23 @@ class Bot(irc.bot.SingleServerIRCBot):
                 self.broken = False
             except Exception as thisbroke:
                 self.raw_message(self.owner, "halp reloading")
-                print ("%s had an error of type %s: %s (in the reload action)" %
-                       (self.nickname, type(thisbroke), thisbroke))
-                self.broken = True
+                self.message_broken(thisbroke)
         elif not self.broken:
             try:
                 target, messages = bot_action_decision.actions(self, source, text, private)
             except Exception as thisbroke:
-                self.raw_message(self.owner, "halp")
-                try:
-                    error = ("%s had an error of type %s: %s (in the decision thread)" %
-                            (self.nickname, type(thisbroke), thisbroke))
-                    print error
-                    self.message(self.owner, [error])
-                except:
-                    print 'had some trouble with the error logging'
-                try:
-                    traceback = format_exc(thisbroke)
-                    print traceback
-                    self.message(self.owner, [traceback])
-                except:
-                    print 'had some trouble with the traceback'
-                self.broken = True
+                self.raw_message(self.owner, 'halp')
+                self.message_broken(thisbroke)
             else:
                 if target:
                     self.message(target, messages)
+
+    def message_broken(self, thisbroke):
+        error = ("%s had an error of type %s: %s (in the decision thread)" %
+                (self.nickname, type(thisbroke), thisbroke))
+        print error
+        self.message(self.owner, error.split('\n'))
+        traceback = format_exc(thisbroke)
+        print traceback
+        self.message(self.owner, traceback.split('\n'))
+        self.broken = True
