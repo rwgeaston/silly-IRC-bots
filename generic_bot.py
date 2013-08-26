@@ -52,6 +52,10 @@ class Bot(irc.bot.SingleServerIRCBot):
     def message(self, target, messages):
         self.messenger.messenger.add_to_queue(target, messages)
 
+    def public(self, messages):
+        """Dangerous! Bit hacky to include this at all but I got the architecture all wrong"""
+        self.message(self.channel, messages)
+
     def raw_message(self, target, message):
         message = message.strip()
         message = message.replace('\n', '')

@@ -10,7 +10,7 @@ def what_to_say(bot, source, text, private):
         request = text[len(bot.nickname) + 1:].strip()
         return battleships_bot.request_for_me(bot, source, request, private)
     elif private:
-        return battleships_bot.request_for_me(bot, source, request, private)
+        return battleships_bot.request_for_me(bot, source, text, private)
     return []
 
 
@@ -71,8 +71,11 @@ class BattleshipsBot(object):
 
         if game.status in ['challenge', 'waiting for positions']:
             del self.active_games[index]
-            return ["{} has cancelled a game."
-                    .format(source)]
+            self.bot.public([
+                "{} has cancelled a game."
+                .format(source)
+            ])
+            return []
         else:
             return ["{}: Too late to cancel that game. See it through or forfeit."]
 
@@ -90,9 +93,12 @@ class BattleshipsBot(object):
         if game.status in ['playing']:
             forfeit_beneficiary = game.players[(game.players.index(source) + 1) % 2]
             del self.active_games[index]
-            return ["{} has forfeited a game."
-                    .format(source),
-                    "{} wins!".format(forfeit_beneficiary)]
+            self.bot.public(
+                ["{} has forfeited a game."
+                .format(source),
+                "{} wins!".format(forfeit_beneficiary)]
+            )
+            return []
         else:
             return self.cancel(source, nickname)
 
@@ -101,13 +107,17 @@ class BattleshipsBot(object):
         if not game:
             return ["{source}: I'm sorry to have to be the one to tell you this, but no one has challenged you yet."
                     .format(source=source)]
+        if game.players[0] == source:
+            return ["{source}: You are the challenger. Only {player} can accept.".format(source=source, player=game.players[1])]
         if game.status == 'challenge':
             game.status = 'waiting for positions'
-            return ["{} has accepted! Please PM me your boat positions."
-                    .format(source)]
+            self.bot.public(
+                ["{} has accepted! Please PM me your boat positions."
+                .format(source)]
+            )
+            return []
         else:
             return ["{}: You're already playing"]
-
 
     def current_games(self, source, nickname):
         return [game.info() for game in self.active_games]
@@ -149,7 +159,7 @@ class BattleshipsBot(object):
                     return ["{}: It's too late for that now. We're already playing.".format(source)]
         return [self.not_playing.format(source=source)]
 
-    def help(self, nickname, nickname):
+    def help(self, source, nickname):
         help_text = '''Battleships!
 Say {nickname}: challenge <nickname> to challenge someone to a game of battleships!
 Your challenge will stay open forever, or until you or the challenged person cancels
@@ -211,7 +221,7 @@ class BattleshipsGame(object):
         if coords_this_move in self.moves[self.players.index(source)]:
             return ["{}: You already attacked that square! I guess you don't want a turn.".format(source)]
         self.moves[self.players.index[source]].add(coords_this_move)
-        for boat in self.boats[self.whose_turn]:
+        for boat_type, boat in self.boats[self.whose_turn].iteritems():
             status = boat.attack(coords_this_move)
             if status == "dead":
                 messages = ["{}: You sunk {}'s {}.".format(source, self.players[self.whose_turn], boat.boat_type)]
@@ -236,25 +246,26 @@ class BattleshipsGame(object):
                                    for coord in self.moves[self.players.index(source)]].sort())))
 
     def set_position(self, source, text):
-        boat_type, raw_location, raw_direction = text.split(' ')
+        new_boat_type, raw_location, raw_direction = text.split(' ')
         start_coords = coords_to_internal(raw_location)
-        direction = self.direction_map[raw_direction]
-        new_boat = PositionedBoat(boat_type, start_coords, direction)
+        direction = self.direction_map[raw_direction.upper()]
+        new_boat = PositionedBoat(new_boat_type, start_coords, direction)
         player_number = self.players.index(source)
-        boat_list = self.boats[player_number]
         if new_boat.off_edge_of_board(self.grid_size):
             return ["That doesn't fit there! It goes off the edge of the board."]
-        for boat in boat_list:
+
+        boat_list = self.boats[player_number]
+        for boat_type, boat in boat_list.iteritems():
             if new_boat.overlaps(boat):
                 return ["That overlaps with another boat you already placed: ",
                         "The {boat_type} at {coord} {direction}. You can move that boat if you want."
                         .format(boat_type=boat.boat_type,
                                 coord=coords_to_printable(boat.location),
                                 direction=self.human_direction_map[boat.direction])]
-        boat_list.append(new_boat)
+        boat_list[new_boat_type] = new_boat
         messages = []
-        if boat_type in self.boats_to_be_positioned[player_number]:
-            self.boats_to_be_positioned[player_number].remove(boat_type)
+        if new_boat_type in self.boats_to_be_positioned[player_number]:
+            self.boats_to_be_positioned[player_number].remove(new_boat_type)
         else:
             messages.append("That one has already been placed but I'll let you move it.")
         messages.append("Boat positioned.")
@@ -262,9 +273,10 @@ class BattleshipsGame(object):
             messages.append("All your boats have been placed. Game will start when your opponent has done the same.")
             if len(self.boats_to_be_positioned[(player_number + 1) % 2]) == 0:
                 self.status = 'playing'
-                self.bot.messenger.add_to_queue(self.bot.channel,
-                                                "Game is starting between {} and {}"
-                                                .format(*self.players))
+                self.bot.public(
+                    ["Game is starting between {} and {}"
+                    .format(*self.players)]
+                )
         return messages
 
 
@@ -319,4 +331,4 @@ def coords_to_printable(coords_internal):
 
 
 def coords_to_internal(coords_human):
-    return (ord(65 + coords_human[1]), int(coords_human[0]) - 1)
+    return int(coords_human[1]) - 1, ord(coords_human[0].upper()) - 65
