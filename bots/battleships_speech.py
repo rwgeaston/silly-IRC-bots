@@ -63,7 +63,7 @@ class BattleshipsBot(object):
         return ['{source} has challenged {target}! Waiting for accept...'
                 .format(source=source, target=target)]
 
-    def cancel(self, source):
+    def cancel(self, source, nickname):
         index, game = self.find_my_game(source)
         if not game:
             return ["{source}: uh, I can't find anything to cancel"
@@ -82,7 +82,7 @@ class BattleshipsBot(object):
                 return index, game
         return False, False
 
-    def forfeit(self, source):
+    def forfeit(self, source, nickname):
         index, game = self.find_my_game(source)
         if not game:
             return ["{source}: uh, I can't find anything to forfeit"
@@ -94,9 +94,9 @@ class BattleshipsBot(object):
                     .format(source),
                     "{} wins!".format(forfeit_beneficiary)]
         else:
-            return self.cancel(source)
+            return self.cancel(source, nickname)
 
-    def accept(self, source):
+    def accept(self, source, nickname):
         _, game = self.find_my_game(source)
         if not game:
             return ["{source}: I'm sorry to have to be the one to tell you this, but no one has challenged you yet."
@@ -149,7 +149,7 @@ class BattleshipsBot(object):
                     return ["{}: It's too late for that now. We're already playing.".format(source)]
         return [self.not_playing.format(source=source)]
 
-    def help(self, nickname):
+    def help(self, nickname, nickname):
         help_text = '''Battleships!
 Say {nickname}: challenge <nickname> to challenge someone to a game of battleships!
 Your challenge will stay open forever, or until you or the challenged person cancels
