@@ -28,7 +28,8 @@ class BattleshipsBot(object):
         self.bot = bot
         if text.startswith('challenge'):
             return self.challenge(source, text[len('challenge'):].strip())
-        elif text in ['accept', 'cancel', 'forfeit', 'help', 'current games', 'my moves']:
+        elif text in ['accept', 'cancel', 'forfeit', 'help',
+                      'current games', 'my moves', 'status', 'show grids']:
             use_function = getattr(self, text.replace(' ', '_'))
             return use_function(source, self.bot.nickname)
         elif len(text) == 2 and \
@@ -40,6 +41,8 @@ class BattleshipsBot(object):
         return ["{}: I don't know what that is.".format(source)]
 
     def challenge(self, source, target):
+        if source == target:
+            return ["{}: Don't be silly.".format(source)]
         for game in self.active_games:
             if source in game.players:
                 if game.status == 'challenge':
@@ -95,8 +98,8 @@ class BattleshipsBot(object):
             del self.active_games[index]
             self.bot.public(
                 ["{} has forfeited a game."
-                .format(source),
-                "{} wins!".format(forfeit_beneficiary)]
+                 .format(source),
+                 "{} wins!".format(forfeit_beneficiary)]
             )
             return []
         else:
@@ -156,8 +159,84 @@ class BattleshipsBot(object):
                 elif game.status == 'challenge':
                     return ["{}: Uh, the game hasn't started yet".format(source)]
                 else:
-                    return ["{}: It's too late for that now. We're already playing.".format(source)]
+                    return ["{}: It's too late for that now. We're already playing."
+                            .format(source)]
         return [self.not_playing.format(source=source)]
+
+    def status(self, source, nickname):
+        index, game = self.find_my_game(source)
+        if game.status == 'challenge':
+            return ["{} has challenged {}.".format(*game.players)]
+        elif game.status == 'waiting for positions':
+            boats_left_count = [len(self.boats_to_be_positioned[player_number])
+                                for player_number in range(2)]
+            if min(boats_left_count) > 0:
+                return ["Waiting for boats to be positioned. "
+                        "Both {} and {} still need to place boats."
+                        .format(*game.players)]
+            elif boats_left_count[0] == 0:
+                return ["Waiting for boats to be positioned. "
+                        "{} still needs to place boats."
+                        .format(game.players[1])]
+            else:
+                return ["Waiting for boats to be positioned. "
+                        "{} still needs to place boats."
+                        .format(game.players[0])]
+        elif game.status == 'playing':
+            return (
+                "{player0} is playing {player1}. "
+                "There have been {turns} turns. "
+                "{player0} still has to sink {player1left} boats and "
+                "{player1} has {player0left}. It is {nextperson}'s turn"
+                .format(player0=game.players[0],
+                        player1=game.players[1],
+                        turns=max([len(move_set) for move_set in game.moves]),
+                        player0left=game.boats_left_to_sink[0],
+                        player1left=game.boats_left_to_sink[1],
+                        nextperson=game.players[game.whose_turn])
+            )
+        else:
+            print game.status
+            print source
+            raise Exception("what is the game status")
+
+    def show_grids(self, source, nickname):
+        # All boats shown on source's grid using - and |
+        # Successful enemy hits shown with x
+        # On enemy grid squares that been hit are shown as x
+        # Misses are shown with 0
+        sources_grid = [['.' for _ in range(self.grid_size)]
+                             for _ in range(self.grid_size)]
+        index, game = self.find_my_game(source)
+        source_player_number = game.players.index(source)
+        other_player_number = (source_player_number + 1) % 2
+        other_player = game.players[other_player_number]
+
+        for boat_type, boat in game.boats[source_player_number].iteritems():
+            direction_to_draw = {(1, 0): '-', (0, 1): '|'}
+            for coord in boat.coords:
+                if coord in boat.coords_left_to_hit:
+                    sources_grid[coord[1]][coord[0]] = direction_to_draw
+                else:
+                    sources_grid[coord[1]][coord[0]] = 'x'
+        messages = ["Your boats:", self.ascii_grid(sources_grid), " "]
+
+        messages.append("{}'s boats:".format(other_player))
+        enemy_grid = [['.' for _ in range(self.grid_size)]
+                           for _ in range(self.grid_size)]
+        for coord in game.moves[source_player_number]:
+            if coord in game.hits[source_player_number]:
+                    enemy_grid[coord[1]][coord[0]] = 'x'
+            else:
+                enemy_grid[coord[1]][coord[0]] = 'o'
+        messages.extend(self.ascii_grid(enemy_grid))
+        self.bot.message(source, messages)
+        return []
+
+    def ascii_grid(self, a_grid):
+        messages = [" ".join(["."] + range(1, self.grid_size + 1))]
+        for index, row in enumerate(a_grid):
+            messages.append(" ".join([chr(65 + index)] + row))
 
     def help(self, source, nickname):
         help_text = '''Battleships!
@@ -172,7 +251,9 @@ They do so like: "carrier B3 H" or "destroyer A8 V"
 A-{row_limit} is the row number, 1-{column_limit} is the column number. You state the location of the top left corner of the boat.
 H or V is whether the boat is oriented in a row or column.
 After both players have positioned, they alternate turns saying "B5", "E2", etc
-Say {nickname}: my moves to see where you have already played in this game.'''\
+Say {nickname}: my moves to see where you have already played in this game.
+{nickname}: status to get the details of your current game
+{nickname}: show grids to see where you boats are placed and what has been hit'''\
             .format(nickname=nickname,
                     row_limit=chr(64 + self.grid_size),
                     column_limit=self.grid_size)
@@ -205,6 +286,7 @@ class BattleshipsGame(object):
             for _ in range(2)
         ]
         self.moves = [set(), set()]
+        self.hits = [set(), set()]
         self.boats_left_to_sink = [5, 5]
 
     def info(self):
@@ -220,10 +302,11 @@ class BattleshipsGame(object):
         self.next_player()
         if coords_this_move in self.moves[self.players.index(source)]:
             return ["{}: You already attacked that square! I guess you don't want a turn.".format(source)]
-        self.moves[self.players.index[source]].add(coords_this_move)
+        self.moves[self.players.index(source)].add(coords_this_move)
         for boat_type, boat in self.boats[self.whose_turn].iteritems():
             status = boat.attack(coords_this_move)
             if status == "dead":
+                self.hits[self.players.index(source)].add(coords_this_move)
                 messages = ["{}: You sunk {}'s {}.".format(source, self.players[self.whose_turn], boat.boat_type)]
                 self.boats_left_to_sink[self.players.index(source)] -= 1
                 if len(self.boats_left_to_sink[self.players.index(source)]) == 0:
@@ -235,6 +318,7 @@ class BattleshipsGame(object):
                     del battleships_bot.active_games[index]
                     return messages
             elif status == "hit":
+                self.hits[self.players.index(source)].add(coords_this_move)
                 return ["{}: You hit {}'s {}.".format(source, self.players[self.whose_turn], boat.boat_type)]
             else:
                 return ["{}: You didn't hit anything.".format(source)]
