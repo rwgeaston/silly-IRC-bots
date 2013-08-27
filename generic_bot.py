@@ -50,7 +50,14 @@ class Bot(irc.bot.SingleServerIRCBot):
         return
 
     def message(self, target, messages):
-        self.messenger.messenger.add_to_queue(target, messages)
+        for line in messages:
+            if type(line) != type('string'):
+                print "You can't message this!"
+                print "I'm not even going to try."
+                print messages
+                break
+        else:
+            self.messenger.messenger.add_to_queue(target, messages)
 
     def public(self, messages):
         """Dangerous! Bit hacky to include this at all but I got the architecture all wrong"""

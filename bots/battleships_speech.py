@@ -33,7 +33,7 @@ class BattleshipsBot(object):
             use_function = getattr(self, text.replace(' ', '_'))
             return use_function(source, self.bot.nickname)
         elif len(text) == 2 and \
-             text[0] in self.valid_row_letters and \
+             text[0].upper() in self.valid_row_letters and \
              text[1] in self.valid_column_numbers:
             return self.make_move(source, text)
         elif self.valid_position_declaration(text):
@@ -115,8 +115,8 @@ class BattleshipsBot(object):
         if game.status == 'challenge':
             game.status = 'waiting for positions'
             self.bot.public(
-                ["{} has accepted! Please PM me your boat positions."
-                .format(source)]
+                ["{}: {} has accepted! Both please PM me your boat positions."
+                .format(*game.players)]
             )
             return []
         else:
@@ -168,7 +168,7 @@ class BattleshipsBot(object):
         if game.status == 'challenge':
             return ["{} has challenged {}.".format(*game.players)]
         elif game.status == 'waiting for positions':
-            boats_left_count = [len(self.boats_to_be_positioned[player_number])
+            boats_left_count = [len(game.boats_to_be_positioned[player_number])
                                 for player_number in range(2)]
             if min(boats_left_count) > 0:
                 return ["Waiting for boats to be positioned. "
@@ -183,7 +183,7 @@ class BattleshipsBot(object):
                         "{} still needs to place boats."
                         .format(game.players[0])]
         elif game.status == 'playing':
-            return (
+            return [
                 "{player0} is playing {player1}. "
                 "There have been {turns} turns. "
                 "{player0} still has to sink {player1left} boats and "
@@ -194,7 +194,7 @@ class BattleshipsBot(object):
                         player0left=game.boats_left_to_sink[0],
                         player1left=game.boats_left_to_sink[1],
                         nextperson=game.players[game.whose_turn])
-            )
+            ]
         else:
             print game.status
             print source
@@ -208,18 +208,22 @@ class BattleshipsBot(object):
         sources_grid = [['.' for _ in range(self.grid_size)]
                              for _ in range(self.grid_size)]
         index, game = self.find_my_game(source)
+        if not game:
+            return ["{}: You're not in a game.".format(source)]
         source_player_number = game.players.index(source)
         other_player_number = (source_player_number + 1) % 2
         other_player = game.players[other_player_number]
 
         for boat_type, boat in game.boats[source_player_number].iteritems():
-            direction_to_draw = {(1, 0): '-', (0, 1): '|'}
+            direction_to_draw = {(1, 0): '-', (0, 1): '|'}[boat.direction]
             for coord in boat.coords:
                 if coord in boat.coords_left_to_hit:
                     sources_grid[coord[1]][coord[0]] = direction_to_draw
                 else:
                     sources_grid[coord[1]][coord[0]] = 'x'
-        messages = ["Your boats:", self.ascii_grid(sources_grid), " "]
+        messages = ["Your boats:"]
+        messages.extend(self.ascii_grid(sources_grid))
+        messages.append(" ")
 
         messages.append("{}'s boats:".format(other_player))
         enemy_grid = [['.' for _ in range(self.grid_size)]
@@ -234,9 +238,12 @@ class BattleshipsBot(object):
         return []
 
     def ascii_grid(self, a_grid):
-        messages = [" ".join(["."] + range(1, self.grid_size + 1))]
+        messages = [" ".join(["."] +
+                    [str(value) for value in range(1, self.grid_size + 1)])]
         for index, row in enumerate(a_grid):
+            print [chr(65 + index)] + row
             messages.append(" ".join([chr(65 + index)] + row))
+        return messages
 
     def help(self, source, nickname):
         help_text = '''Battleships!
@@ -415,4 +422,5 @@ def coords_to_printable(coords_internal):
 
 
 def coords_to_internal(coords_human):
+    print coords_human
     return int(coords_human[1]) - 1, ord(coords_human[0].upper()) - 65
