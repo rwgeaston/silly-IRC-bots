@@ -327,8 +327,8 @@ class BattleshipsGame(object):
             elif status == "hit":
                 self.hits[self.players.index(source)].add(coords_this_move)
                 return ["{}: You hit {}'s {}.".format(source, self.players[self.whose_turn], boat.boat_type)]
-            else:
-                return ["{}: You didn't hit anything.".format(source)]
+        else:
+            return ["{}: You didn't hit anything.".format(source)]
 
     def print_moves(self, source):
         return ("{}: Your moves so far are: {}"
