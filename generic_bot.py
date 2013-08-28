@@ -29,7 +29,7 @@ class Bot(irc.bot.SingleServerIRCBot):
         self.owner = owner
         self.broken = False
         self.talk = True
-        self.messenger_config = {'wait_time':1, 'message_everyone':True}
+        self.messenger_config = {'wait_time':0.5, 'message_everyone':True}
         self.messenger = messenger_thread(self)
         self.messenger.daemon = True
         self.messenger.start()

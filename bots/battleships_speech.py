@@ -11,8 +11,9 @@ def what_to_say(bot, source, text, private):
         return battleships_bot.request_for_me(bot, source, request, private)
     elif private:
         return battleships_bot.request_for_me(bot, source, text, private)
+    elif battleships_bot.valid_coord(text):
+        return battleships_bot.might_be_a_move(bot, source, text, private)
     return []
-
 
 class BattleshipsBot(object):
     def __init__(self):
@@ -32,13 +33,25 @@ class BattleshipsBot(object):
                       'current games', 'my moves', 'status', 'show grids']:
             use_function = getattr(self, text.replace(' ', '_'))
             return use_function(source, self.bot.nickname)
-        elif len(text) == 2 and \
-             text[0].upper() in self.valid_row_letters and \
-             text[1] in self.valid_column_numbers:
+        elif self.valid_coord(text):
             return self.make_move(source, text)
         elif self.valid_position_declaration(text):
             return self.set_position(source, text)
         return ["{}: I don't know what that is.".format(source)]
+
+    def valid_coord(self, text):
+        return len(text) == 2 and \
+               text[0].upper() in self.valid_row_letters and \
+               text[1] in self.valid_column_numbers
+
+    def might_be_a_move(self, bot, source, text, private):
+        try_move = self.make_move(source, text)
+        if len(try_move) == 0:
+            return try_move
+        elif "game hasn't started yet" in try_move[0] or "you aren't playing" in try_move[0]:
+            return []
+        else:
+            return try_move
 
     def challenge(self, source, target):
         if source == target:
@@ -165,6 +178,8 @@ class BattleshipsBot(object):
 
     def status(self, source, nickname):
         index, game = self.find_my_game(source)
+        if not game:
+            return ["{}: You're not in a game.".format(source)]
         if game.status == 'challenge':
             return ["{} has challenged {}.".format(*game.players)]
         elif game.status == 'waiting for positions':
@@ -241,7 +256,6 @@ class BattleshipsBot(object):
         messages = [" ".join(["."] +
                     [str(value) for value in range(1, self.grid_size + 1)])]
         for index, row in enumerate(a_grid):
-            print [chr(65 + index)] + row
             messages.append(" ".join([chr(65 + index)] + row))
         return messages
 
@@ -316,14 +330,15 @@ class BattleshipsGame(object):
                 self.hits[self.players.index(source)].add(coords_this_move)
                 messages = ["{}: You sunk {}'s {}.".format(source, self.players[self.whose_turn], boat.boat_type)]
                 self.boats_left_to_sink[self.players.index(source)] -= 1
-                if len(self.boats_left_to_sink[self.players.index(source)]) == 0:
+                if self.boats_left_to_sink[self.players.index(source)] == 0:
                     messages.append("{}: That was {}'s last boat. You win!"
                                     .format(source, self.players[self.whose_turn]))
                     index, game = battleships_bot.find_my_game(source)
                     if not game:
                         raise Exception("Uh, how is {} not in a game?".format(source))
                     del battleships_bot.active_games[index]
-                    return messages
+                self.bot.public(messages)
+                return []
             elif status == "hit":
                 self.hits[self.players.index(source)].add(coords_this_move)
                 return ["{}: You hit {}'s {}.".format(source, self.players[self.whose_turn], boat.boat_type)]
@@ -331,10 +346,12 @@ class BattleshipsGame(object):
             return ["{}: You didn't hit anything.".format(source)]
 
     def print_moves(self, source):
-        return ("{}: Your moves so far are: {}"
-                .format(source,
-                        ', '.join([coords_to_printable(coord)
-                                   for coord in self.moves[self.players.index(source)]].sort())))
+        moves = [coords_to_printable(coord) for coord in self.moves[self.players.index(source)]]
+        moves.sort()
+        if len(moves) == 0:
+            return []
+        return ["{}: Your moves so far are: {}"
+                .format(source, ', '.join(moves))]
 
     def set_position(self, source, text):
         new_boat_type, raw_location, raw_direction = text.split(' ')
@@ -406,6 +423,7 @@ class PositionedBoat(object):
     def attack(self, coord):
         if self.coord_hit(coord):
             self.coords_left_to_hit.remove(coord)
+            print self.coords_left_to_hit
             if len(self.coords_left_to_hit) == 0:
                 return "dead"
             else:
