@@ -1,5 +1,7 @@
+import battleships_shared
 from battleships_shared import boat_lengths, coords_to_internal, coords_to_printable, PositionedBoat, grid_size, direction_map, human_direction_map
 
+reload(battleships_shared)
 
 def authorised_to_shup(source, owner):
     return source == owner

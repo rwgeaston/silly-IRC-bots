@@ -1,12 +1,11 @@
+import battleships_shared
 from battleships_shared import boat_lengths, coords_to_internal, coords_to_printable, PositionedBoat, \
                                grid_size, direction_map, human_direction_map
 from random import choice, randint
 from re import match as regex_match
 from time import sleep
 
-
-battleships_bot = 'ships'
-battleships_player = BattleshipsPlayer(grid_size)
+reload(battleships_shared)
 
 
 def authorised_to_shup(source, owner):
@@ -24,7 +23,7 @@ def what_to_say(bot, source, text, private):
         return []
 
     if request == 'random boats':
-        return generate_random_boat_positions(grid_size)
+        return [", ".join(generate_random_boat_positions(grid_size))]
     else:
         return []
 
@@ -69,13 +68,21 @@ class BattleshipsPlayer(object):
     def __init__(self, grid_size):
         self.grid_size = grid_size
 
-    def request(self, bot, text):
-        challenge = regex_match('(?P<challenger>\w+) has challenged {}! Waiting for accept...'.format(target), text)
+    def request_for_me(self, bot, text):
+        challenge = regex_match('(?P<challenger>\w+) has challenged {}! Waiting for accept...'.format(bot.nickname), text)
         if challenge:
             self.current_game = BattleshipsGame(challenge.group('challenger'))
-            bot.public("{}: accept".format(battleships_bot))
+            bot.public(["{}: accept".format(battleships_bot)])
             sleep(3)
             bot.message(battleships_bot, generate_random_boat_positions(self.grid_size))
             return ["\o/"]
         else:
             return []
+
+
+class BattleshipsGame(object):
+    def __init__(self, opponent):
+        self.opponent = opponent
+
+battleships_bot = 'ships'
+battleships_player = BattleshipsPlayer(grid_size)

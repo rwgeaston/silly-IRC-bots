@@ -45,13 +45,13 @@ class PositionedBoat(object):
         else:
             return "miss"
 
-
+    
 def coords_to_printable(coords_internal):
     return chr(65 + coords_internal[1]) + str(coords_internal[0] + 1)
 
 
 def coords_to_internal(coords_human):
-    return (ord(65 + coords_human[1]), int(coords_human[0]) - 1)
+    return int(coords_human[1]) - 1, ord(coords_human[0].upper()) - 65 
 
 
 grid_size = 9
