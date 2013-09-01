@@ -1,4 +1,7 @@
-from copy import copy
+from battleships_shared import boat_lengths, coords_to_internal, coords_to_printable, PositionedBoat, grid_size
+
+
+battleships_bot = BattleshipsBot(grid_size)
 
 
 def authorised_to_shup(source, owner):
@@ -15,9 +18,10 @@ def what_to_say(bot, source, text, private):
         return battleships_bot.might_be_a_move(bot, source, text, private)
     return []
 
+
 class BattleshipsBot(object):
-    def __init__(self):
-        self.grid_size = 9
+    def __init__(self, grid_size):
+        self.grid_size = grid_size
         self.valid_row_letters = [chr(65 + index)
                                   for index in range(self.grid_size)]
         self.valid_column_numbers = [str(index + 1)
@@ -386,59 +390,3 @@ class BattleshipsGame(object):
                     .format(*self.players)]
                 )
         return messages
-
-
-boat_lengths = {
-    'carrier': 5,
-    'battleship': 4,
-    'submarine': 3,
-    'destroyer': 3,
-    'patrol': 2
-}
-
-
-class PositionedBoat(object):
-    def __init__(self, boat_type, location, direction):
-        self.boat_type = boat_type
-        self.location = location
-        self.direction = direction
-        self.boat_length = boat_lengths[boat_type]
-        self.coords = [tuple([location[i] + (direction[i] * index) for i in range(2)])
-                       for index in range(self.boat_length)]
-        self.coords_left_to_hit = copy(self.coords)
-
-    def off_edge_of_board(self, grid_size):
-        return max(self.coords[-1]) + 1 > grid_size
-
-    def overlaps(self, boat):
-        for coord in self.coords:
-            if coord in boat.coords:
-                return True
-        else:
-            return False
-
-    def coord_hit(self, coord):
-        return coord in self.coords_left_to_hit
-
-    def attack(self, coord):
-        if self.coord_hit(coord):
-            self.coords_left_to_hit.remove(coord)
-            print self.coords_left_to_hit
-            if len(self.coords_left_to_hit) == 0:
-                return "dead"
-            else:
-                return "hit"
-        else:
-            return "miss"
-
-
-battleships_bot = BattleshipsBot()
-
-
-def coords_to_printable(coords_internal):
-    return chr(65 + coords_internal[1]) + str(coords_internal[0] + 1)
-
-
-def coords_to_internal(coords_human):
-    print coords_human
-    return int(coords_human[1]) - 1, ord(coords_human[0].upper()) - 65
