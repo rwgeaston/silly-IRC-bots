@@ -28,8 +28,8 @@ def what_to_say(bot, source, text, private):
             return ["I won't kick them"]
         else:
             bot.connection.kick(bot.channel, text[5:], "Less being mean; more hugging.")
-    elif 'hubot insult' in text or 'guppy: smack' in text or "hubot: insult" in text:
-        if source not in ['route', 'rwge', 'hugbot']:
+    elif 'hubot insult' in text or 'guppy: smack' in text or "hubot: insult" in text or 'guppy: slap' in text:
+        if source not in ['route', 'rwge', 'hugbot', 'ships']:
             print 'kicking {}'.format(source)
             bot.connection.kick(bot.channel, source, "Less being mean; more hugging.")
     return []
