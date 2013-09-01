@@ -1,4 +1,4 @@
-from battleships_shared import boat_lengths, coords_to_internal, coords_to_printable, PositionedBoat, grid_size
+from battleships_shared import boat_lengths, coords_to_internal, coords_to_printable, PositionedBoat, grid_size, direction_map, human_direction_map
 from random import choice, randint
 
 
@@ -8,7 +8,7 @@ def authorised_to_shup(source, owner):
 
 def what_to_say(bot, source, text, private):
     if text.startswith('{}:'.format(bot.nickname)):
-        request = text[len(bot.nickname):]
+        request = text[len(bot.nickname) + 1:].strip()
     elif private:
         request = text
     else:
@@ -29,7 +29,11 @@ def generate_random_boat_positions(grid_size):
                 placed_boats.update({boat: new_boat_position})
                 break
 
-    return ["{} {} {}".format(boat, placed_boats[boat].position, placed_boats[boat].direction) for boat in placed_boats]
+    return ["{} {} {}"
+            .format(boat,
+                    coords_to_printable(placed_boats[boat].location),
+                    human_direction_map[placed_boats[boat].direction])
+            for boat in placed_boats]
 
 
 def overlaps(placed_boats, new_boat_position, grid_size):
@@ -45,8 +49,8 @@ def overlaps(placed_boats, new_boat_position, grid_size):
 
 
 def place_boat(boat_type, grid_size):
-    orientation = choice(('H', 'V'))
-    coords = (randint(0, grid_size - 1), randint(0, grid_size - 1 - boat_lengths[boat]))
-    if orientation == 'H':
+    orientation = choice(((0, 1), (1, 0)))
+    coords = (randint(0, grid_size - 1), randint(0, grid_size - 1 - boat_lengths[boat_type]))
+    if orientation == (1, 0):
         coords = (coords[1], coords[0])
-    return PositionedBoat(boat, coords, orientation)
+    return PositionedBoat(boat_type, coords, orientation)

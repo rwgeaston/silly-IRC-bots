@@ -8,6 +8,9 @@ boat_lengths = {
     'patrol': 2
 }
 
+direction_map = {'H': (1, 0), 'V': (0, 1)}
+human_direction_map = {(1, 0): 'H', (0, 1): 'V'}
+
 
 class PositionedBoat(object):
     def __init__(self, boat_type, location, direction):

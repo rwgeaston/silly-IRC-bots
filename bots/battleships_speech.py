@@ -1,7 +1,4 @@
-from battleships_shared import boat_lengths, coords_to_internal, coords_to_printable, PositionedBoat, grid_size
-
-
-battleships_bot = BattleshipsBot(grid_size)
+from battleships_shared import boat_lengths, coords_to_internal, coords_to_printable, PositionedBoat, grid_size, direction_map, human_direction_map
 
 
 def authorised_to_shup(source, owner):
@@ -285,6 +282,9 @@ Say {nickname}: my moves to see where you have already played in this game.
         return help_text.split('\n')
 
 
+battleships_bot = BattleshipsBot(grid_size)
+
+
 class BattleshipsGame(object):
     def __init__(self,
                  players,
@@ -302,8 +302,6 @@ class BattleshipsGame(object):
         self.info_messages = {'challenge': '{} has challenged {}.',
                               'waiting for positions': '{} and {} are about to start a game.',
                               'playing': '{} and {} are in a game.'}
-        self.direction_map = {'H': (1, 0), 'V': (0, 1)}
-        self.human_direction_map = {(1, 0): 'H', (0, 1): 'V'}
         self.whose_turn = 1
         self.boats = [{}, {}]
         self.boats_to_be_positioned = [
@@ -360,7 +358,7 @@ class BattleshipsGame(object):
     def set_position(self, source, text):
         new_boat_type, raw_location, raw_direction = text.split(' ')
         start_coords = coords_to_internal(raw_location)
-        direction = self.direction_map[raw_direction.upper()]
+        direction = direction_map[raw_direction.upper()]
         new_boat = PositionedBoat(new_boat_type, start_coords, direction)
         player_number = self.players.index(source)
         if new_boat.off_edge_of_board(self.grid_size):
@@ -373,7 +371,7 @@ class BattleshipsGame(object):
                         "The {boat_type} at {coord} {direction}. You can move that boat if you want."
                         .format(boat_type=boat.boat_type,
                                 coord=coords_to_printable(boat.location),
-                                direction=self.human_direction_map[boat.direction])]
+                                direction=human_direction_map[boat.direction])]
         boat_list[new_boat_type] = new_boat
         messages = []
         if new_boat_type in self.boats_to_be_positioned[player_number]:
