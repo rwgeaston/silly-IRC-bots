@@ -76,13 +76,20 @@ class BattleshipsPlayer(object):
             sleep(3)
             bot.message(battleships_bot, generate_random_boat_positions(self.grid_size))
             return ["\o/"]
-        else:
-            return []
+
+        # This shouldn't come up (unless perhaps the battleships bot crashes?).
+        if text == "{}: You're not in a game.".format(bot.nickname):
+            del self.current_game
+            return ["Oh. :("]
+        return []
 
 
 class BattleshipsGame(object):
     def __init__(self, opponent):
         self.opponent = opponent
+
+    def make_move(self):
+        pass
 
 battleships_bot = 'ships'
 battleships_player = BattleshipsPlayer(grid_size)
