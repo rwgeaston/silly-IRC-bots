@@ -13,10 +13,10 @@ def authorised_to_shup(source, owner):
 
 
 def what_to_say(bot, source, text, private):
-    if text.startswith('{}:'.format(bot.nickname)):
-        request = text[len(bot.nickname) + 1:].strip()
-    elif source == battleships_bot:
+    if source == battleships_bot:
         return battleships_player.request_from_battleships(bot, text)
+    elif text.startswith('{}:'.format(bot.nickname)):
+        request = text[len(bot.nickname) + 1:].strip()
     elif private:
         request = text
     else:
@@ -24,12 +24,15 @@ def what_to_say(bot, source, text, private):
 
     if request == 'random boats':
         return [", ".join(generate_random_boat_positions(grid_size))]
-    elif request == "it's your turn" and source == owner:
-        if hasattr(battleships_player, current_game):
+    elif request == "it's your turn" and source == bot.owner:
+        if hasattr(battleships_player, "current_game"):
             battleships_player.current_game.make_move()
             return ["Sorry; wasn't paying attention"]
         else:
             return ["{}: I don't think I'm in a game...".format(source)]
+    elif request == 'show your grid':
+        if hasattr(battleships_player, "current_game"):
+            return battleships_player.current_game.show_moves()
     else:
         return []
 
@@ -86,26 +89,29 @@ class BattleshipsPlayer(object):
             bot.message(battleships_bot, generate_random_boat_positions(self.grid_size))
             return ["\o/"]
 
-        if hasattar(self, current_game):
+        if hasattr(self, "current_game"):
             opponent = self.current_game.opponent
-            # Responses that imply opponent made a move
-            move_texts = ["{}: You already attacked that square! I guess you don't want a turn.".format(opponent),
-                          "{}: You sunk {}'s".format(opponent, bot.nickname),
-                          "{}: You hit {}'s".format(opponent, bot.nickname),
-                          "{}: You didn't hit anything.".format(opponent)]
+            # Responses that imply opponent made a move or it's my turn
+            move_texts = [
+                "Game is starting between {} and {}".format(opponent, bot.nickname),
+                "{}: You already attacked that square! I guess you don't want a turn.".format(opponent),
+                "{}: You sunk {}'s".format(opponent, bot.nickname),
+                "{}: You hit {}'s".format(opponent, bot.nickname),
+                "{}: You didn't hit anything.".format(opponent)
+            ]
             for move_text in move_texts:
                 if text.startswith(move_text):
                     return self.current_game.make_move()
 
-            hit = regex_match("{}: You hit {}'s(?P<boat_name>\w+)".format(bot.nickname, opponent), text)
+            hit = regex_match("{}: You hit {}'s (?P<boat_name>\w+).".format(bot.nickname, opponent), text)
             if hit:
                 self.current_game.last_move_was_hit(hit.group('boat_name'))
 
-            sink = regex_match("{}: You sunk {}'s(?P<boat_name>\w+)".format(bot.nickname, opponent), text)
+            sink = regex_match("{}: You sunk {}'s (?P<boat_name>\w+).".format(bot.nickname, opponent), text)
             if sink:
-                self.current_game.last_move_was_sink(hit.group('boat_name'))
+                self.current_game.last_move_was_sink(sink.group('boat_name'))
 
-            if text == "{}: You didn't hit anything".format(bot.nickname):
+            if text == "{}: You didn't hit anything.".format(bot.nickname):
                 self.current_game.last_move_was_miss()
 
             # This shouldn't come up (unless perhaps the battleships bot crashes?).
@@ -124,11 +130,28 @@ class BattleshipsGame(object):
         self.positions_attacked = []
         self.boats = {boat_name: [] for boat_name in boat_lengths}
 
+    def translate(self, value):
+        if value == "haven't tried":
+            return '-'
+        elif value == "nothing":
+            return 'o'
+        elif value == "boat":
+            return 'x'
+        else:
+            raise Exception("This grid makes no sense: {}".format(value))
+
+    def show_moves(self):
+        return [" ".join([self.translate(self.opponent_grid[column][row])
+                          for column in xrange(self.grid_size)])
+                for row in xrange(self.grid_size)]
+
     def make_move(self):
         for boat in self.boats:
             if len(self.boats[boat]) > 0:
+                print "trying to hit the {}".format(boat)
                 return self.circle_boat(boat)
         else:
+            print "haven't found a boat yet"
             return self.make_searching_move()
 
     def make_searching_move(self):
@@ -140,20 +163,22 @@ class BattleshipsGame(object):
         ]
         attack_positions_with_distances.sort()
         position_to_attack = attack_positions_with_distances[0][1]
-        self.positions_attacked = position_to_attack
+        self.positions_attacked.append(position_to_attack)
         return [coords_to_printable(position_to_attack)]
 
     def last_move_was_hit(self, boat):
-        last_coord_attacked = positions_attacked[-1]
-        safe_get_coord(self.opponent_grid, last_coord_attacked) = "boat"
+        last_coord_attacked = self.positions_attacked[-1]
+        set_coord(self.opponent_grid, last_coord_attacked, "boat")
         self.boats[boat].append(last_coord_attacked)
 
     def last_move_was_sink(self, boat):
+        last_coord_attacked = self.positions_attacked[-1]
+        set_coord(self.opponent_grid, last_coord_attacked, "boat")
         del self.boats[boat]
 
     def last_move_was_miss(self):
-        last_coord_attacked = positions_attacked[-1]
-        safe_get_coord(self.opponent_grid, last_coord_attacked) = "nothing"
+        last_coord_attacked = self.positions_attacked[-1]
+        set_coord(self.opponent_grid, last_coord_attacked, "nothing")
 
     def find_positions_not_checked(self):
         return [(horiz, vert)
@@ -167,8 +192,9 @@ class BattleshipsGame(object):
             raise Exception("Why are we trying to hit a boat we haven't found yet")
         elif len(boat_coords) == 1:
             for direction in ['up', 'down', 'left', 'right']:
-                coord_try = get_adjacent(boat_coords, direction)
+                coord_try = get_adjacent(boat_coords[0], direction)
                 if safe_get_coord(self.opponent_grid, coord_try) == "haven't tried":
+                    self.positions_attacked.append(coord_try)
                     return [coords_to_printable(coord_try)]
         elif len(boat_coords) > 1:
             if boat_coords[0][0] == boat_coords[1][0]:
@@ -190,7 +216,8 @@ class BattleshipsGame(object):
                     coord.reverse()
 
             for coord_try in coords_to_try:
-                if safe_get_coord(self.opponent_grid, coord) == "haven't tried":
+                if safe_get_coord(self.opponent_grid, coord_try) == "haven't tried":
+                    self.positions_attacked.append(coord_try)
                     return [coords_to_printable(coord_try)]
             else:
                 raise Exception(
@@ -211,8 +238,12 @@ def safe_get_coord(grid, coord):
                 .format(grid, coord)
             )
 
+def set_coord(grid, coord, value):
+    grid[coord[0]][coord[1]] = value
+
 
 def get_adjacent(coords, direction):
+    print coords
     direction_map = {'up': (0, -1),
                      'down': (0, 1),
                      'left': (-1, 0),
