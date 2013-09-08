@@ -13,6 +13,10 @@ def what_to_say(bot, source, text, private):
         if ' me ' in people:
             return ["{}: You're nice, but a bit arrogant".format(source)]
         return ["You're the best," + people + "!"]
+    elif text.lower().startswith('hugbot: when is hugging time?'):
+        return ["Always!"]
+    elif text.lower().startswith('hugbot: what is hometime?'):
+        return ["Hometime is hugging time!"]
     elif text.lower().startswith('hugbot: forecast for '):
         place = text[len('hugbot: forecast for '):]
         dates = [get_date(days_from_now) for days_from_now in xrange(3)]
@@ -28,10 +32,12 @@ def what_to_say(bot, source, text, private):
             return ["I won't kick them"]
         else:
             bot.connection.kick(bot.channel, text[5:], "Less being mean; more hugging.")
-    elif 'hubot insult' in text or 'guppy: smack' in text or "hubot: insult" in text or 'guppy: slap' in text:
-        if source not in ['route', 'rwge', 'hugbot', 'ships']:
-            print 'kicking {}'.format(source)
-            bot.connection.kick(bot.channel, source, "Less being mean; more hugging.")
+    bad_phrases = ['hubot insult', 'guppy: smack', "hubot: insult", 'guppy: slap', 'guppy: hit']
+    for phrase in bad_phrases:
+        if phrase in text:
+            if source not in ['route', 'rwge', 'hugbot', 'ships']:
+                print 'kicking {}'.format(source)
+                bot.connection.kick(bot.channel, source, "Less being mean; more hugging.")
     return []
 
 def get_date(days_from_now):
