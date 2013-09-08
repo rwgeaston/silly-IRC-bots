@@ -96,7 +96,7 @@ class BattleshipsBot(object):
             ])
             return []
         else:
-            return ["{}: Too late to cancel that game. See it through or forfeit."]
+            return ["{}: Too late to cancel that game. See it through or forfeit.".format(source)]
 
     def find_my_game(self, player_name):
         for index, game in enumerate(self.active_games):
@@ -204,8 +204,8 @@ class BattleshipsBot(object):
             return [
                 "{player0} is playing {player1}. "
                 "There have been {turns} turns. "
-                "{player0} still has to sink {player1left} boats and "
-                "{player1} has {player0left}. It is {nextperson}'s turn"
+                "{player0} still has to sink {player0left} boats and "
+                "{player1} has {player1left}. It is {nextperson}'s turn"
                 .format(player0=game.players[0],
                         player1=game.players[1],
                         turns=max([len(move_set) for move_set in game.moves]),
