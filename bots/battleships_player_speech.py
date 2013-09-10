@@ -129,6 +129,7 @@ class BattleshipsGame(object):
         self.opponent_grid = [["haven't tried" for _ in xrange(grid_size)] for _ in xrange(grid_size)]
         self.positions_attacked = []
         self.boats = {boat_name: [] for boat_name in boat_lengths}
+        self.start_position = (randint(0, 8), randint(0, 8))
 
     def translate(self, value):
         if value == "haven't tried":
@@ -157,7 +158,7 @@ class BattleshipsGame(object):
     def make_searching_move(self):
         attack_positions = self.find_positions_not_checked()
         attack_positions_with_distances = [
-            (distance_to_centre(position),
+            (distance_between_coords(position, self.start_position),
              position)
             for position in attack_positions
         ]
@@ -175,6 +176,7 @@ class BattleshipsGame(object):
         last_coord_attacked = self.positions_attacked[-1]
         set_coord(self.opponent_grid, last_coord_attacked, "boat")
         del self.boats[boat]
+        self.smallest_boat_left = min([boat_lengths[boat] for boat in self.boats])
 
     def last_move_was_miss(self):
         last_coord_attacked = self.positions_attacked[-1]
@@ -259,11 +261,6 @@ def get_adjacent(coords, direction):
                      'left': (-1, 0),
                      'right': (1, 0)}[direction]
     return (coords[0] + direction_map[0], coords[1] + direction_map[1])
-
-
-def distance_to_centre(coord):
-    centre = ((grid_size + 1) / 2, (grid_size + 1) / 2)
-    return distance_between_coords(coord, centre)
 
 
 def distance_between_coords(coord1, coord2):
