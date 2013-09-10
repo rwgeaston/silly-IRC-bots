@@ -184,7 +184,8 @@ class BattleshipsGame(object):
         return [(horiz, vert)
                 for vert in xrange(self.grid_size)
                 for horiz in xrange(self.grid_size)
-                if self.opponent_grid[horiz][vert] == "haven't tried"]
+                if (self.opponent_grid[horiz][vert] == "haven't tried" and
+                    (horiz + vert) % 2 == 1)]
 
     def circle_boat(self, boat):
         boat_coords = self.boats[boat]
