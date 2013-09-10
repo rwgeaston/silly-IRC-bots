@@ -38,6 +38,10 @@ def what_to_say(bot, source, text, private):
             if source not in ['route', 'rwge', 'hugbot', 'ships']:
                 print 'kicking {}'.format(source)
                 bot.connection.kick(bot.channel, source, "Less being mean; more hugging.")
+    if "It's just MARIO KART!" in text:
+        if source not in ['route', 'rwge', 'hugbot', 'ships']:
+            print 'kicking {}'.format(source)
+            bot.connection.kick(bot.channel, source, "It's really not. It's just RUBBISH!")
     return []
 
 def get_date(days_from_now):
