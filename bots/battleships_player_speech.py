@@ -181,11 +181,15 @@ class BattleshipsGame(object):
         set_coord(self.opponent_grid, last_coord_attacked, "nothing")
 
     def find_positions_not_checked(self):
-        return [(horiz, vert)
-                for vert in xrange(self.grid_size)
-                for horiz in xrange(self.grid_size)
-                if (self.opponent_grid[horiz][vert] == "haven't tried" and
-                    (horiz + vert) % 2 == 1)]
+        unattacked = [(horiz, vert)
+                      for vert in xrange(self.grid_size)
+                      for horiz in xrange(self.grid_size)
+                      if self.opponent_grid[horiz][vert] == "haven't tried"]
+        unattacked_with_parity = [(coord, get_parity(coord, self.smallest_boat_left)) for coord in unattacked]
+        parities = [parity for (coord, parity) in unattacked_with_parity]
+        parity_counts = [(parities.count(parity), parity) for parity in xrange(self.smallest_boat_left)]
+        best_parity = min(parity_counts)[1]
+        return [coord for (coord, parity) in unattacked_with_parity if parity == best_parity]
 
     def circle_boat(self, boat):
         boat_coords = self.boats[boat]
@@ -239,8 +243,13 @@ def safe_get_coord(grid, coord):
                 .format(grid, coord)
             )
 
+
 def set_coord(grid, coord, value):
     grid[coord[0]][coord[1]] = value
+
+
+def get_parity(coord, divisor):
+    return (coord[0] + coord[1]) % divisor
 
 
 def get_adjacent(coords, direction):
