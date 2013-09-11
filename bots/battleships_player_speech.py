@@ -172,7 +172,7 @@ class BattleshipsGame(object):
         # Get the closest moves and then we don't care about the distance again after this
         attack_positions_with_distances.sort()
 
-        best_parity = self.get_least_common_parity(attack_positions)
+        best_parity = self.get_latest_appearing_parity(attack_positions_with_distances)
         for _, coord in attack_positions_with_distances:
             if get_parity(coord, self.smallest_boat_left) == best_parity:
                 return coord
@@ -181,11 +181,11 @@ class BattleshipsGame(object):
                 # (even if min boat size later changes)
                 set_coord(self.opponent_grid, coord, "wrong parity")
 
-    def get_least_common_parity(self, list_of_coords):
+    def get_latest_appearing_parity(self, list_of_coords):
         parities = [get_parity(coord, self.smallest_boat_left)
-                    for coord in list_of_coords]
-        parity_counts = [(parities.count(parity), parity)
-                         for parity in xrange(self.smallest_boat_left)]
+                    for distance, coord in list_of_coords]
+        parity_first = [(parities.index(parity), parity)
+                        for parity in xrange(self.smallest_boat_left)]
         return min(parity_counts)[1]
 
     def last_move_was_hit(self, boat):
@@ -216,7 +216,7 @@ class BattleshipsGame(object):
         elif len(boat_coords) == 1:
             for direction in ['up', 'down', 'left', 'right']:
                 coord_try = get_adjacent(boat_coords[0], direction)
-                if safe_get_coord(self.opponent_grid, coord_try) == "haven't tried":
+                if safe_get_coord(self.opponent_grid, coord_try) in ["haven't tried", "wrong parity"]:
                     self.positions_attacked.append(coord_try)
                     return [coords_to_printable(coord_try)]
         elif len(boat_coords) > 1:
@@ -239,7 +239,7 @@ class BattleshipsGame(object):
                     coord.reverse()
 
             for coord_try in coords_to_try:
-                if safe_get_coord(self.opponent_grid, coord_try) == "haven't tried":
+                if safe_get_coord(self.opponent_grid, coord_try) in ["haven't tried", "wrong parity"]:
                     self.positions_attacked.append(coord_try)
                     return [coords_to_printable(coord_try)]
             else:
