@@ -173,17 +173,17 @@ class BattleshipsGame(object):
         attack_positions_with_distances.sort()
 
         best_parity = self.get_least_common_parity(attack_positions)
-        for coord, _ in attack_positions:
-            if get_parity(coord) == best_parity:
+        for _, coord in attack_positions_with_distances:
+            if get_parity(coord, self.smallest_boat_left) == best_parity:
                 return coord
             else:
                 # Permanently rule out positions not worth playing as we go along
                 # (even if min boat size later changes)
-                set_coord(self.opponent_grid, coord, "wrong parity"
+                set_coord(self.opponent_grid, coord, "wrong parity")
 
     def get_least_common_parity(self, list_of_coords):
         parities = [get_parity(coord, self.smallest_boat_left)
-                    or coord in list_of_coords]
+                    for coord in list_of_coords]
         parity_counts = [(parities.count(parity), parity)
                          for parity in xrange(self.smallest_boat_left)]
         return min(parity_counts)[1]
@@ -204,10 +204,10 @@ class BattleshipsGame(object):
         set_coord(self.opponent_grid, last_coord_attacked, "nothing")
 
     def find_positions_not_checked(self):
-        return = [(horiz, vert)
-                  for vert in xrange(self.grid_size)
-                  for horiz in xrange(self.grid_size)
-                  if self.opponent_grid[horiz][vert] == "haven't tried"]
+        return [(horiz, vert)
+                for vert in xrange(self.grid_size)
+                for horiz in xrange(self.grid_size)
+                if self.opponent_grid[horiz][vert] == "haven't tried"]
 
     def circle_boat(self, boat):
         boat_coords = self.boats[boat]
