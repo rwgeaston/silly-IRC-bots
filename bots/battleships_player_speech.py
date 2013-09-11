@@ -132,7 +132,7 @@ class BattleshipsGame(object):
         self.start_position = (randint(0, 8), randint(0, 8))
 
     def translate(self, value):
-        if value == "haven't tried":
+        if value in ["haven't tried", "wrong parity"]:
             return '-'
         elif value == "nothing":
             return 'o'
@@ -157,15 +157,36 @@ class BattleshipsGame(object):
 
     def make_searching_move(self):
         attack_positions = self.find_positions_not_checked()
+        position_to_attack = self.get_closest_position_correct_parity(attack_positions)
+        self.positions_attacked.append(position_to_attack)
+        return [coords_to_printable(position_to_attack)]
+
+    def get_closest_position_correct_parity(self, attack_positions):
+        # Pairs of (distance from start, coord) for sorting
         attack_positions_with_distances = [
             (distance_between_coords(position, self.start_position),
              position)
             for position in attack_positions
         ]
+
+        # Get the closest moves and then we don't care about the distance again after this
         attack_positions_with_distances.sort()
-        position_to_attack = attack_positions_with_distances[0][1]
-        self.positions_attacked.append(position_to_attack)
-        return [coords_to_printable(position_to_attack)]
+
+        best_parity = self.get_least_common_parity(attack_positions)
+        for coord, _ in attack_positions:
+            if get_parity(coord) == best_parity:
+                return coord
+            else:
+                # Permanently rule out positions not worth playing as we go along
+                # (even if min boat size later changes)
+                set_coord(self.opponent_grid, coord, "wrong parity"
+
+    def get_least_common_parity(self, list_of_coords):
+        parities = [get_parity(coord, self.smallest_boat_left)
+                    or coord in list_of_coords]
+        parity_counts = [(parities.count(parity), parity)
+                         for parity in xrange(self.smallest_boat_left)]
+        return min(parity_counts)[1]
 
     def last_move_was_hit(self, boat):
         last_coord_attacked = self.positions_attacked[-1]
@@ -183,15 +204,10 @@ class BattleshipsGame(object):
         set_coord(self.opponent_grid, last_coord_attacked, "nothing")
 
     def find_positions_not_checked(self):
-        unattacked = [(horiz, vert)
-                      for vert in xrange(self.grid_size)
-                      for horiz in xrange(self.grid_size)
-                      if self.opponent_grid[horiz][vert] == "haven't tried"]
-        unattacked_with_parity = [(coord, get_parity(coord, self.smallest_boat_left)) for coord in unattacked]
-        parities = [parity for (coord, parity) in unattacked_with_parity]
-        parity_counts = [(parities.count(parity), parity) for parity in xrange(self.smallest_boat_left)]
-        best_parity = min(parity_counts)[1]
-        return [coord for (coord, parity) in unattacked_with_parity if parity == best_parity]
+        return = [(horiz, vert)
+                  for vert in xrange(self.grid_size)
+                  for horiz in xrange(self.grid_size)
+                  if self.opponent_grid[horiz][vert] == "haven't tried"]
 
     def circle_boat(self, boat):
         boat_coords = self.boats[boat]
