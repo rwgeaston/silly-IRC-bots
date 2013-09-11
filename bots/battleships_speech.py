@@ -239,11 +239,8 @@ class BattleshipsBot(object):
                     sources_grid[coord[1]][coord[0]] = direction_to_draw
                 else:
                     sources_grid[coord[1]][coord[0]] = 'x'
-        messages = ["Your boats:"]
-        messages.extend(self.ascii_grid(sources_grid))
-        messages.append(" ")
 
-        messages.append("{}'s boats:".format(other_player))
+        messages = ["{}'s boats:".format(other_player)]
         enemy_grid = [['.' for _ in range(self.grid_size)]
                            for _ in range(self.grid_size)]
         for coord in game.moves[source_player_number]:
@@ -252,6 +249,12 @@ class BattleshipsBot(object):
             else:
                 enemy_grid[coord[1]][coord[0]] = 'o'
         messages.extend(self.ascii_grid(enemy_grid))
+
+        messages.append("Your boats:")
+        messages.extend(self.ascii_grid(sources_grid))
+        messages.append(" ")
+
+
         self.bot.message(source, messages)
         return []
 
