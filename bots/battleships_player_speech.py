@@ -171,22 +171,34 @@ class BattleshipsGame(object):
 
         # Get the closest moves and then we don't care about the distance again after this
         attack_positions_with_distances.sort()
+        if attack_positions_with_distances[0][0] == 0:
+            # first move!
+            return attack_positions_with_distances[0][1]
+
+        print "these are the options"
+        print attack_positions_with_distances
 
         best_parity = self.get_latest_appearing_parity(attack_positions_with_distances)
+        
+        print "so latest appearing is {}".format(best_parity)
         for _, coord in attack_positions_with_distances:
             if get_parity(coord, self.smallest_boat_left) == best_parity:
+                print "will attack {}".format(coord)
                 return coord
             else:
                 # Permanently rule out positions not worth playing as we go along
                 # (even if min boat size later changes)
+                print "no point attacking {}".format(coord)
                 set_coord(self.opponent_grid, coord, "wrong parity")
 
     def get_latest_appearing_parity(self, list_of_coords):
         parities = [get_parity(coord, self.smallest_boat_left)
                     for distance, coord in list_of_coords]
+        print "and the parities for those"
+        print parities
         parity_first = [(parities.index(parity), parity)
                         for parity in xrange(self.smallest_boat_left)]
-        return min(parity_counts)[1]
+        return max(parity_first)[1]
 
     def last_move_was_hit(self, boat):
         last_coord_attacked = self.positions_attacked[-1]
