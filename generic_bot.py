@@ -29,7 +29,7 @@ class Bot(irc.bot.SingleServerIRCBot):
         self.owner = owner
         self.broken = False
         self.talk = True
-        self.messenger_config = {'wait_time':0.5, 'message_everyone':True}
+        self.messenger_config = {'wait_time':0.75, 'message_everyone':True}
         self.messenger = messenger_thread(self)
         self.messenger.daemon = True
         self.messenger.start()
@@ -51,7 +51,7 @@ class Bot(irc.bot.SingleServerIRCBot):
 
     def message(self, target, messages):
         for line in messages:
-            if type(line) != type('string'):
+            if type(line) not in [str, unicode]:
                 print "You can't message this!"
                 print "I'm not even going to try."
                 print messages

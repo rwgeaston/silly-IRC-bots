@@ -39,3 +39,9 @@ def stop(nickname):
 def wipe():
     for nickname in bot_threads:
         bot_threads[nickname].bot.messenger.messenger.wipe()
+
+standard_bots = ['hugbot', 'planes', 'drybones', 'toadette', 'daisy', 'kingboo', 'luigi', 'diddykong', 'route', 'ships', 'wario', 'lunchtime', 'lexis']
+
+def run_standard_bots():
+    for bot_name in standard_bots:
+        start(bot_name)

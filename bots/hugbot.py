@@ -32,12 +32,15 @@ def what_to_say(bot, source, text, private):
             return ["I won't kick them"]
         else:
             bot.connection.kick(bot.channel, text[5:], "Less being mean; more hugging.")
-    bad_phrases = ['hubot insult', 'guppy: smack', "hubot: insult", 'guppy: slap', 'guppy: hit']
+    bad_phrases = ['hubot insult', ': smack', "hubot: insult", ': slap', ': hit']
     for phrase in bad_phrases:
         if phrase in text:
             if source not in ['route', 'rwge', 'hugbot', 'ships']:
                 print 'kicking {}'.format(source)
                 bot.connection.kick(bot.channel, source, "Less being mean; more hugging.")
+    if source == 'guppy':
+        print 'kicking {}'.format(source)
+        bot.connection.kick(bot.channel, source, "Less being mean; more hugging.")
     if "It's just MARIO KART!" in text:
         if source not in ['route', 'rwge', 'hugbot', 'ships']:
             print 'kicking {}'.format(source)

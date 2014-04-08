@@ -1,10 +1,12 @@
 from re import match as regex_match
 from os import path
 from time import sleep
+from urllib2 import urlopen
 
 my_folder = path.dirname(__file__)
 source_file = my_folder + '/sowpods_words/{}.txt'
-
+shorter_word_list_file = open(my_folder + '/shorter_word_list.txt')
+shorter_word_list = set(shorter_word_list_file.read().split())
 
 def authorised_to_shup(source, owner):
     return owner
@@ -16,7 +18,8 @@ def authorised_to_shup(source, owner):
 # is it a real word? hubot: The 9 letter word was: JIMHICKEY
 
 current_game = None
-
+current_letters = None
+scrabble_bot_name = 'scrabble'
 
 def what_to_say(bot, source, request, private):
     if private:
@@ -27,10 +30,48 @@ def what_to_say(bot, source, request, private):
                         check_word.group(1),
                         str(is_it_real_word(check_word.group(1)))
                     )]
-    
+    if source == 'hubot':
+        return what_to_say_hangman(bot, source, request, private)
+    elif source == scrabble_bot_name or source == bot.owner:
+        global current_letters
+        if request.startswith('letters are now '):
+            print bot.nickname, request
+            current_letters = request[len('letters are now '):]
+            return []
+        elif request == '{}: your turn'.format(bot.nickname):
+            return scrabble_play_move(current_letters)
+        elif request == '{}: play scrabble'.format(bot.nickname):
+            return ['{}: join'.format(scrabble_bot_name)]
+        else:
+            return []
+    return []
+
+def scrabble_play_move(letters):
+    letters_old_format = letters.replace('_', '-')
+    page = urlopen(
+        'http://10.47.222.75/cgi-bin/best_words.cgi?myletters={}'
+        .format(letters_old_format)
+    )
+    content = page.read()
+    options = content.split('<br>')
+
+    for option in options:
+        try:
+            score, word, coord, direction = option.split(' ')
+        except ValueError:
+            print [option]
+            raise
+        if True: # they can play any word now word.lower() in shorter_word_list:
+            return ['{}: {} {} {}'.format(
+                scrabble_bot_name,
+                coord,
+                direction[0],
+                word.upper()
+            )]
+    return ["{}: pass".format(scrabble_bot_name)]
+
+def what_to_say_hangman(bot, source, request, private):
     global current_game
-    if source != 'hubot':
-        return []
 
     make_a_move = regex_match("The (?P<word_length>\w+) letter word is:", request)
     if make_a_move:
