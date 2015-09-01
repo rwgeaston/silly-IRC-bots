@@ -39,6 +39,7 @@ def what_to_say(bot, source, request, private):
             current_letters = request[len('letters are now '):]
             return []
         elif request == '{}: your turn'.format(bot.nickname):
+            bot.message('picture', ['http://10.47.222.75/images/scrabble/current.png'])
             return scrabble_play_move(current_letters)
         elif request == '{}: play scrabble'.format(bot.nickname):
             return ['{}: join'.format(scrabble_bot_name)]
@@ -48,11 +49,11 @@ def what_to_say(bot, source, request, private):
 
 def scrabble_play_move(letters):
     letters_old_format = letters.replace('_', '-')
-    page = urlopen(
-        'http://10.47.222.75/cgi-bin/best_words.cgi?myletters={}'
-        .format(letters_old_format)
-    )
+    url = 'http://fourier.test.lal.cisco.com/cgi-bin/best_words.cgi?myletters={}'.format(letters)
+    page = urlopen(url)
     content = page.read()
+    if "/usr/lib" in content:
+        raise Exception("Died when opening {}".format(url))
     options = content.split('<br>')
 
     for option in options:
