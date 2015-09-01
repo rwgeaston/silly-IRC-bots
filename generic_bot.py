@@ -29,10 +29,11 @@ class Bot(irc.bot.SingleServerIRCBot):
         self.owner = owner
         self.broken = False
         self.talk = True
-        self.messenger_config = {'wait_time':0.75, 'message_everyone':True}
+        self.messenger_config = {'wait_time':0.75, 'message_everyone':False}
         self.messenger = messenger_thread(self)
         self.messenger.daemon = True
         self.messenger.start()
+        self.connection.buffer_class.errors = 'replace'
         print "%s probably running now: %s %s" % (nickname, server, port)
 
     def on_nicknameinuse(self, connection, event):
