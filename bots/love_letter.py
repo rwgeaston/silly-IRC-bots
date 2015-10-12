@@ -40,7 +40,10 @@ def what_to_say(bot, source, text, private):
     global last_game_time
     bot_messenger = bot.message
     bot_channel = bot.channel
-    if not private:
+    if private:
+        if 'wipe game' in text:
+            current_game = None
+    else:
         if text.startswith("{}: ".format(bot.nickname)):
             command = text[len("{}: ".format(bot.nickname)):]
             

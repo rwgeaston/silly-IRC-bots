@@ -52,7 +52,11 @@ class Messenger(object):
                 return None, None
             if self.queue_to_check == len(self.message_queues):
                 self.queue_to_check = 0
-            relevant_queue = self.message_queues[self.queue_to_check]
+            try:
+                relevant_queue = self.message_queues[self.queue_to_check]
+            except:
+                print self.message_queues, self.queue_to_check
+                return None, None
             message = relevant_queue[1].get()
             target = relevant_queue[0]
             self.queue_to_check += 1
